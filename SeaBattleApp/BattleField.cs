@@ -14,7 +14,7 @@ namespace SeaBattleApp
         public const char FIRST_CHAR_RU = 'А';
 
         public enum CellState { Unexplored = 0, Empty, BurningShip, DestroyedShip };   // состояние ячейки изменяется путём прибавления нового состояния к начальному 0
-        public static int MarkIsAShip => 5;             //  метка видимого корабля
+        public const int MarkIsAShip = 5;             //  метка видимого корабля
         public static int MarkAShipInvisible => 6;      // метка невидимого корабля                                     
 
         private bool _isItMyField;

@@ -7,9 +7,7 @@ class Program
 
     static void Main(string[] args)
     {
-        
         Play();
-
     }
 
     static void Play()
@@ -25,14 +23,14 @@ class Program
         Console.WriteLine($"2-ва 3-палубных:   {shV}{shV}{shV}\t|  {shV}{shV}{shV}");
         Console.WriteLine($"1-ин 4-палубный:   {shV}{shV}{shV}{shV}");
         var shipsOutside = game.createShips();
-        ShowGameBoard(game);
+        ShowGameBoardVer2(game);
 
         Console.WriteLine("\nТеперь вы готовы для размещения вашей флотилии.\n");
 
 
         // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
         game.AddShipEvent += HandleAddingAShip;
-        game.ByShotEvent += ShowGameBoard;
+        game.ByShotEvent += ShowGameBoardVer2;
 /*
         int testCounter = 2;
         while (testCounter > 0) {*/
@@ -72,7 +70,7 @@ class Program
                 orientation = Console.ReadLine()!.ToLower();
             }
             targetShip.IsHorizontalOrientation = orientation == "г" ? true : false;
-            (bool, string) resultWithMsg = game.TryAddTheShipOnTheField(targetShip, Coordinate.ParseRu(coords));
+            (bool, string) resultWithMsg = game.TryAddTheShipOnTheField(targetShip, Coordinate.Parse(coords));
             if (!resultWithMsg.Item1) {
                 WriteLineColor($"{resultWithMsg.Item2}. Попробуйте ещё раз!\n", ConsoleColor.Red);
                 goto tryCoordinates;
@@ -81,7 +79,7 @@ class Program
         }
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
-        ShowGameBoard(game);
+        ShowGameBoardVer2(game);
 
         Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите вашу пушку и пли (введите координату)!!!!\n");
 
@@ -94,7 +92,6 @@ class Program
             if (isTheWinner) break;
         }
         Console.WriteLine("\n" + border + "Конец игры" + border);
-
     }
 
     private static void PlayerMove(Game game, ref bool isTheWinner)
@@ -102,7 +99,7 @@ class Program
         string targetCoords = ReadValidCoords(game);
         bool shipIsDestroyed = false;
         bool isMyMove = true;
-        (bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(Coordinate.ParseRu(targetCoords), isMyMove, ref shipIsDestroyed);
+        (bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
         while (isSuccess) {
             if (!shipIsDestroyed) {
                 Console.WriteLine("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
@@ -116,7 +113,8 @@ class Program
                 }
             }
             targetCoords = ReadValidCoords(game);
-            (isSuccess, ship) = game.TryShootAtTheTarget(Coordinate.ParseRu(targetCoords), isMyMove, ref shipIsDestroyed);
+            shipIsDestroyed = false;
+            (isSuccess, ship) = game.TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
         }
         Console.WriteLine("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
         Console.ReadLine();
@@ -124,19 +122,23 @@ class Program
 
     private static void CompMove(Game game, ref bool isTheWinner)
     {
-        var size = game.TheCompPlayer.AllPositions.Count;
-        var random = new Random();
-        var randPosition = game.TheCompPlayer.AllPositions[random.Next(0, size)];
-        Console.WriteLine("Компьютер выстрелил по позиции : " + randPosition);
+        var selectedPosition = "";
+
+        selectedPosition = game.TheCompPlayer.ComputeFirstMove();
+
         bool shipIsDestroyed = false;
-        (bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(Coordinate.ParseRu(randPosition), false, ref shipIsDestroyed);
+        (bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(Coordinate.Parse(selectedPosition), false, ref shipIsDestroyed);
+        Console.WriteLine("Компьютер выстрелил по позиции : " + selectedPosition);
         while (isSuccess) {
+            ++game.TheCompPlayer.TheMemory.HitCounter;
+            if (game.TheCompPlayer.TheMemory.HitCounter >= 2) game.TheCompPlayer.TheMemory.DirectionIsDefined = true;
             if (!shipIsDestroyed) {
                 Console.WriteLine("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
                 Console.ReadKey();
             }
             else {
-                Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает...");
+                game.TheCompPlayer.TheMemory.IsDestroyedShip = true;
+                Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает... нажмите клавишу, чтобы продолжить");
                 Console.ReadKey();
                 if (game.CurrentField.ShipsCounter == 0) {
                     Console.WriteLine("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
@@ -144,27 +146,17 @@ class Program
                     return;
                 }
             }
-            if (ship != null && shipIsDestroyed) {
-                game.TheCompPlayer.AllPositions = game.TheCompPlayer.AllPositions.Except(ship.GetAllPositionsWithAround()).ToList();
-            }
-            else if (ship != null) {
-                game.TheCompPlayer.AllPositions.Remove(randPosition);
-            }
-            // game.TheCompPlayer.AllPositions.Remove(randPosition); логика перенесена в класс Game, в метод TryShootAtTheTarget
-            size -= 1; 
-            randPosition = game.TheCompPlayer.AllPositions[random.Next(0, size)];
-            Console.WriteLine("Компьютер выстрелил по позиции : " + randPosition);
-            (isSuccess, ship) = game.TryShootAtTheTarget(Coordinate.ParseRu(randPosition), false, ref shipIsDestroyed);
-        }
-        Console.WriteLine("Компьютер промахнулся. Теперь ваш черед.");
-    }
+            game.TheCompPlayer.ClearUnsablePositions(ship, selectedPosition);
 
-    private static void ShowGameBoard(Game game)
-    {
-        Console.WriteLine("\nВаше поле:");
-        ShowBattleField(game.MyField);
-        Console.WriteLine("\nПротивника поле:");
-        ShowBattleField(game.OpponentField);
+            selectedPosition = game.TheCompPlayer.ComputeNewPosition(selectedPosition);
+            shipIsDestroyed = false;
+            (isSuccess, ship) = game.TryShootAtTheTarget(Coordinate.Parse(selectedPosition), false, ref shipIsDestroyed);
+            game.TheCompPlayer.TheMemory.IsHitContinuous = true; // выстовляется неприровность в true если зайдём на второй круг в цикле
+            Console.WriteLine("Компьютер выстрелил по позиции : " + selectedPosition);
+        }
+        game.TheCompPlayer.ClearUnsablePositions(ship, selectedPosition);
+        game.TheCompPlayer.TheMemory.IsHitContinuous = false;
+        Console.WriteLine("Компьютер промахнулся. Теперь ваш черед.");
     }
 
     static string ReadValidCoords(Game game) {
@@ -181,9 +173,63 @@ class Program
         var game = (Game)sender;
         if (ship != null)
             WriteLineColor($"Установлен {ship.Length}-палубный корабль.", ConsoleColor.Green);
-        Console.WriteLine("Ваше поле:");
-        ShowBattleField(game.CurrentField);
+        /*        Console.WriteLine("Ваше поле:");
+                ShowBattleField(game.CurrentField);*/
+        ShowGameBoardVer2(game);
 
+    }
+
+
+    private static void ShowGameBoard(Game game)
+    {
+        Console.WriteLine("\nВаше поле:");
+        ShowBattleField(game.MyField);
+        Console.WriteLine("\nПротивника поле:");
+        ShowBattleField(game.OpponentField);
+    }
+    private static void ShowGameBoardVer2(Game game)
+    {
+        string spaceBetweenFields = new String(' ', game.MyField.Columns - 2);
+        WriteLineColor("\n\tВаше поле:" + spaceBetweenFields + spaceBetweenFields + "Противника поле:", ConsoleColor.Cyan);
+        int[,] myField = game.MyField.Field;
+        int[,] opponentField = game.OpponentField.Field;
+
+        Console.Write("    ");
+        PrintRuCharsInLine(myField);
+        Console.Write(spaceBetweenFields);
+        PrintRuCharsInLine(opponentField);
+        Console.Write("\n   " + new string('-', myField.GetLength(1) * 2));
+        Console.Write(spaceBetweenFields);
+        Console.WriteLine(new string('-', myField.GetLength(1) * 2));
+
+        for (int i = 0; i < myField.GetLength(0); ++i) {
+            var indent = (i + 1) < 10 ? " " : "";
+            Console.Write($"{i + 1}{indent}| ");
+
+            for (int j = 0; j < myField.GetLength(1); ++j) {
+                char imgShip = GetImageShip(myField, i, j);
+                Console.Write(imgShip + " ");
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
+            Console.Write("    ");
+            Console.Write($"{i + 1}{indent}| ");
+            for (int j = 0; j < opponentField.GetLength(1); ++j) {
+                char imgShip = GetImageShip(opponentField, i, j);
+                Console.Write(imgShip + " ");
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
+            Console.WriteLine("");
+        }
+        Console.WriteLine();
+    }
+
+    private static void PrintRuCharsInLine(int[,] field)
+    {
+        var charCol = BattleField.FIRST_CHAR_RU;
+        for (int i = 0; i < field.GetLength(1); i++) {
+            var ch = charCol == 'Й' || charCol == 'Ё' ? ++charCol : charCol;
+            Console.Write($"{charCol++} ");
+        }
     }
 
     static void ShowBattleField(BattleField battleField)
@@ -203,7 +249,6 @@ class Program
             Console.Write($"{i + 1}{indent}| ");
             for (int j = 0; j < field.GetLength(1); ++j)
             {
-                
                 char shipImg = '.';
                 if (field[i, j] == BattleField.MarkIsAShip) {
                     shipImg = 'S';
@@ -232,6 +277,33 @@ class Program
         }
         System.Console.WriteLine();
     }
+
+    private static char GetImageShip(int[,] field, int i, int j)
+    {
+        char shipImg = '.';
+        if (field[i, j] == BattleField.MarkIsAShip) {
+            shipImg = 'S';
+            Console.ForegroundColor = ConsoleColor.Green;
+        }
+        else if (field[i, j] == (int)BattleField.CellState.Unexplored) { //|| field[i, j] == BattleField.MarkAShipInvisible) {
+            shipImg = '*';
+            Console.ForegroundColor = ConsoleColor.Blue;
+        }
+        else if (field[i, j] == (int)BattleField.CellState.Empty) {
+            shipImg = '-';
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+        else if (field[i, j] == (int)BattleField.CellState.BurningShip) {
+            shipImg = 'B';
+            Console.ForegroundColor = ConsoleColor.Red;
+        }
+        else if (field[i, j] == (int)BattleField.CellState.DestroyedShip) {
+            shipImg = 'X';
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+        }
+        return shipImg;
+    }
+
 
     public static void WriteLineColor(string s, ConsoleColor color)
     {

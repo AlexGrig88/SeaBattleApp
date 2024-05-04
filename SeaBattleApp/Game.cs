@@ -73,7 +73,7 @@ namespace SeaBattleApp
                 var ship = ChooseTheShip(shipsOutside, len);
                 ship.IsHorizontalOrientation = arrOfBool[random.Next(0, 2)];
                 var randIdx = random.Next(0, size);
-                while (!OpponentField.TryAddTheShip(ship, Coordinate.ParseRu(TheCompPlayer.AllPositions[randIdx]), out string errorMsg))
+                while (!OpponentField.TryAddTheShip(ship, Coordinate.Parse(TheCompPlayer.AllPositions[randIdx]), out string errorMsg))
                 {
                     randIdx = random.Next(0, size);
                     ship.IsHorizontalOrientation = arrOfBool[random.Next(0, 2)];
