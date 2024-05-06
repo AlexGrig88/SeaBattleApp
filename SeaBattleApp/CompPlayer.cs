@@ -131,7 +131,7 @@ namespace SeaBattleApp
                 {
                     writer.Write(item + " ");
                 }
-                return AllPositionsForOpponent[new Random().Next(0, AllPositionsForOpponent.Count)];
+                return AllPositionsForOpponent[new Random().Next(0, AllPositionsForOpponent.Count)];  // Этот костыль сломал всю логику, появилось новое исключение выхода за границу в классе Battlefield!!!!
             }
             finally {
                 writer.Flush();

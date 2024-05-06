@@ -63,7 +63,7 @@ class Program
         // label for goto
         tryCoordinates:
             Console.Write("Вводите координату (сначала номер строки, потом букву столбца, без пробелов): ");
-            string position = ReadValidPosition(game);
+            string position = game.ReadValidPosition();
 
             string orientation = "г";
             if (len != 1)  // для однопалубных не спрашиваем ориентацию
@@ -97,95 +97,16 @@ class Program
         while (true) 
         {
             isTheWinner = false;
-            PlayerMove(game, ref isTheWinner);
+            game.PlayerMove(ref isTheWinner);
             if (isTheWinner) break;
 
             isTheWinner = false;
-            CompMove2(game, ref isTheWinner);
+            game.CompMove2(ref isTheWinner);
             if (isTheWinner) break;
         }
         Console.WriteLine("\n" + border + "Конец игры" + border);
     }
 
-
-    private static void PlayerMove(Game game, ref bool isTheWinner)
-    {
-        string targetCoords = ReadValidPosition(game);
-        bool shipIsDestroyed = false;
-        bool isMyMove = true;
-        (bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
-        while (isSuccess) {
-            if (!shipIsDestroyed) {
-                Console.WriteLine("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
-            }
-            else {
-                Console.WriteLine("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
-                if (game.CurrentField.ShipsCounter == 0) {
-                    Console.WriteLine("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
-                    isTheWinner = true;
-                    return;
-                }
-            }
-            targetCoords = ReadValidPosition(game);
-            shipIsDestroyed = false;
-            (isSuccess, ship) = game.TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
-        }
-        Console.WriteLine("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
-        Console.ReadLine();
-    }
-
-    private static void CompMove2(Game game, ref bool isTheWinner)
-    {
-        var isFirstShotInLoop = true;
-        do {
-            string selectedPosition = "";
-           
-            selectedPosition = game.TheCompPlayer.ComputeMove2(isFirstShotInLoop);
-            Console.WriteLine($"Комп стреляет по позиции: {selectedPosition}");
-            
-            bool IsDestroyedShip = false;
-            (bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(Coordinate.Parse(selectedPosition), false, ref IsDestroyedShip);
-
-            game.TheCompPlayer.AllPositionsForOpponent.Remove(selectedPosition);  // выстрел произошёл, можно очистить позицию из списка всех позиций у компьютера
-
-            if (!isSuccess) {
-                Console.WriteLine("Компьютер промахнулся. Теперь ваш черед.");
-                break;
-            }
-           
-            game.TheCompPlayer.TheMemory.PositionsInProcess.Add(selectedPosition); // успех выстрела, можно добавить в память компьютера данную розицию
-            if (!IsDestroyedShip) {
-                Console.WriteLine("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
-                Console.ReadKey();
-            }
-            else {
-                Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает... нажмите клавишу, чтобы продолжить");
-                // надо сбросить память компьютера в начальное состояние
-                game.TheCompPlayer.ClearUnsablePositions(ship, false);
-                game.TheCompPlayer.TheMemory.Reset();  
-
-                Console.ReadKey();
-                if (game.CurrentField.ShipsCounter == 0) {
-                    Console.WriteLine("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
-                    isTheWinner = true;
-                    return;
-                }
-            }
-            isFirstShotInLoop = false;
-
-        } while (true);
-
-    }
-
-    static string ReadValidPosition(Game game) {
-        string coords = Console.ReadLine()?.ToUpper() ?? "DDD";
-        while (!game.IsValidRuCoordinate(coords))
-        {
-            WriteLineColor("Координата не корректная!\nПопробуйте ещё раз!\n", ConsoleColor.Red);
-            coords = Console.ReadLine()?.ToUpper() ?? "DDD";
-        }
-        return coords;
-    }
 
     static void HandleAddingAShip(object sender, Ship? ship) {
         var game = (Game)sender;
