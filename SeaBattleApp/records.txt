@@ -632,3 +632,183 @@ dir[0] = 0; dir[1] = 1
 dir[0] = 0; dir[1] = -1
 +++++++++++++
 direction row = 1; direction col = 0
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 9Б
+Заход в цикл номер 1
+randIdx = 2; UnexploredDirection.Count = 4
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 0; dir[1] = -1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 1; direction col = 0
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 9Б
+Заход в цикл номер 1
+randIdx = 2; UnexploredDirection.Count = 3
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 0; dir[1] = -1
++++++++++++++
+direction row = -1; direction col = 0
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 9Б
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 2
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = -1
++++++++++++++
+direction row = 0; direction col = 1
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Д
+Заход в цикл номер 1
+randIdx = 2; UnexploredDirection.Count = 4
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = -1
+dir[0] = 0; dir[1] = -1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 1; direction col = 0
+Заход в цикл номер 2
+randIdx = 0; UnexploredDirection.Count = 3
+++++++ Print remainder directions After filtering +++++++
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 0; direction col = -1
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 5А
+Заход в цикл номер 1
+randIdx = 1; UnexploredDirection.Count = 4
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 1; dir[1] = 0
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 0; direction col = -1
+Заход в цикл номер 2
+randIdx = 1; UnexploredDirection.Count = 3
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 1; direction col = 0
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 5А
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 2
+++++++ Print remainder directions After filtering +++++++
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 0; direction col = 1
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 1Д
+Заход в цикл номер 1
+randIdx = 2; UnexploredDirection.Count = 4
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 0; dir[1] = -1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 1; direction col = 0
+Заход в цикл номер 2
+randIdx = 1; UnexploredDirection.Count = 3
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 0; direction col = -1
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 10К
+Заход в цикл номер 1
+randIdx = 2; UnexploredDirection.Count = 4
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 0; dir[1] = 1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 1; direction col = 0
+Заход в цикл номер 2
+randIdx = 0; UnexploredDirection.Count = 3
+++++++ Print remainder directions After filtering +++++++
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 0; direction col = 1
+Заход в цикл номер 3
+randIdx = 0; UnexploredDirection.Count = 1
+++++++ Print remainder directions After filtering +++++++
++++++++++++++
+direction row = -1; direction col = 0
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 2; UnexploredDirection.Count = 4
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 0; dir[1] = 1
+dir[0] = -1; dir[1] = 0
++++++++++++++
+direction row = 1; direction col = 0
+Заход в цикл номер 2
+randIdx = 2; UnexploredDirection.Count = 3
+++++++ Print remainder directions After filtering +++++++
+dir[0] = 0; dir[1] = 1
+dir[0] = 0; dir[1] = 1
++++++++++++++
+direction row = -1; direction col = 0
+==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 1; UnexploredDirection.Count = 2
+++++++ Print remainder directions After filtering +++++++
++++++++++++++
+direction row = 0; direction col = 1
+Заход в цикл номер 2
+randIdx = 0; UnexploredDirection.Count = 0
+???????Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')???????????????????????
+@@@@@@@ All positions @@@@@@@@
+1А 2А 3А 1Б 5Г 5Д 9Д 5Е 7Е 6Ж 7Ж 8Ж 10Ж 5З 7З 8З 1И 2И 3И 5И 8И 10И 1К 6К 7К ==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 0
+???????Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')???????????????????????
+@@@@@@@ All positions @@@@@@@@
+1А 2А 3А 1Б 5Г 9Д 5Е 7Е 6Ж 7Ж 8Ж 10Ж 5З 7З 8З 1И 2И 3И 5И 8И 10И 1К 6К 7К ==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 0
+???????Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')???????????????????????
+@@@@@@@ All positions @@@@@@@@
+1А 2А 3А 1Б 9Д 5Е 7Е 6Ж 7Ж 8Ж 10Ж 5З 7З 8З 1И 2И 3И 5И 8И 10И 1К 6К 7К ==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 0
+???????Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')???????????????????????
+@@@@@@@ All positions @@@@@@@@
+1А 2А 3А 1Б 9Д 5Е 7Е 6Ж 7Ж 10Ж 5З 7З 8З 1И 2И 3И 5И 8И 10И 1К 6К 7К ==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 0
+???????Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')???????????????????????
+@@@@@@@ All positions @@@@@@@@
+1А 2А 3А 1Б 9Д 5Е 7Е 6Ж 10Ж 5З 7З 8З 1И 2И 3И 5И 8И 10И 1К 6К 7К ==================================================
+Заход в метод GetRandomPosFromFourFreeDirection:
+ lastShotPosition = 3Б
+Заход в цикл номер 1
+randIdx = 0; UnexploredDirection.Count = 0
+???????Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')???????????????????????
+@@@@@@@ All positions @@@@@@@@
+1А 2А 3А 1Б 9Д 5Е 7Е 6Ж 10Ж 5З 7З 8З 1И 2И 3И 8И 10И 1К 6К 7К 

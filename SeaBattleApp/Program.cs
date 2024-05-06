@@ -39,6 +39,8 @@ class Program
         // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
         game.AddShipEvent += HandleAddingAShip;
         game.ByShotEvent += ShowGameBoardVer2;
+        game.WriteMessageForPlayerEvent += Console.WriteLine;
+
 
 
         while (shipsOutside.Count > 0) {

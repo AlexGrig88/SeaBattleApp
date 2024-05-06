@@ -9,6 +9,7 @@ namespace SeaBattleApp
         public delegate void AddShipHandler(object sender, Ship ship);
         public event AddShipHandler? AddShipEvent;
         public event Action<Game> ByShotEvent;
+        public event Action<string> WriteMessageForPlayerEvent;
 
         public static Regex regexValidPosition = new Regex(@"^([1-9]|10)[А-ЕЖЗИК]$");
 
@@ -70,7 +71,8 @@ namespace SeaBattleApp
                 string selectedPosition = "";
 
                 selectedPosition = TheCompPlayer.ComputeMove2(isFirstShotInLoop);
-                Console.WriteLine($"Комп стреляет по позиции: {selectedPosition}");
+                // Console.WriteLine($"Комп стреляет по позиции: {selectedPosition}");
+                WriteMessageForPlayerEvent?.Invoke($"Комп стреляет по позиции: {selectedPosition}");
 
                 bool IsDestroyedShip = false;
                 (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(selectedPosition), false, ref IsDestroyedShip);
@@ -78,13 +80,15 @@ namespace SeaBattleApp
                 TheCompPlayer.AllPositionsForOpponent.Remove(selectedPosition);  // выстрел произошёл, можно очистить позицию из списка всех позиций у компьютера
 
                 if (!isSuccess) {
-                    Console.WriteLine("Компьютер промахнулся. Теперь ваш черед.");
+                    // Console.WriteLine("Компьютер промахнулся. Теперь ваш черед.");
+                    WriteMessageForPlayerEvent?.Invoke("Компьютер промахнулся. Теперь ваш черед.");
                     break;
                 }
 
                 TheCompPlayer.TheMemory.PositionsInProcess.Add(selectedPosition); // успех выстрела, можно добавить в память компьютера данную розицию
                 if (!IsDestroyedShip) {
-                    Console.WriteLine("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
+                    // Console.WriteLine("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
+                    WriteMessageForPlayerEvent?.Invoke("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
                     Console.ReadKey();
                 }
                 else {
@@ -95,7 +99,8 @@ namespace SeaBattleApp
 
                     Console.ReadKey();
                     if (CurrentField.ShipsCounter == 0) {
-                        Console.WriteLine("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
+                        // Console.WriteLine("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
+                        WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
                         isTheWinner = true;
                         return;
                     }
@@ -114,12 +119,15 @@ namespace SeaBattleApp
             (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
             while (isSuccess) {
                 if (!shipIsDestroyed) {
-                    Console.WriteLine("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
+                    // Console.WriteLine("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
+                    WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                 }
                 else {
-                    Console.WriteLine("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
+                    //Console.WriteLine("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
+                    WriteMessageForPlayerEvent?.Invoke("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
                     if (CurrentField.ShipsCounter == 0) {
-                        Console.WriteLine("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                        //Console.WriteLine("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                        WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
                         isTheWinner = true;
                         return;
                     }
@@ -128,7 +136,8 @@ namespace SeaBattleApp
                 shipIsDestroyed = false;
                 (isSuccess, ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
             }
-            Console.WriteLine("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
+            //Console.WriteLine("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
+            WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
             Console.ReadLine();
         }
 
@@ -136,7 +145,8 @@ namespace SeaBattleApp
         {
             string coords = Console.ReadLine()?.ToUpper() ?? "DDD";
             while (!IsValidRuCoordinate(coords)) {
-                Console.WriteLine("Координата не корректная!\nПопробуйте ещё раз!\n");
+                // Console.WriteLine("Координата не корректная!\nПопробуйте ещё раз!\n");
+                WriteMessageForPlayerEvent?.Invoke("Координата не корректная!\nПопробуйте ещё раз!\n");
                 coords = Console.ReadLine()?.ToUpper() ?? "DDD";
             }
             return coords;
