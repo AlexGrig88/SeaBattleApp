@@ -10,11 +10,13 @@ namespace SeaBattleApp
     public class CompPlayer
     {
 
+        public record Direction(int Row, int Col);
+
         public class Memory
         {
             private int[][] _fourDirection = new int[4][] { new int[] { 0, 1 }, new int[] { 0, -1 }, new int[] { 1, 0 }, new int[] { -1, 0 } };
-            public int[] LastDirectionInLine { get; set; } 
-            public List<int[]> UnexploredDirection { get; set; }
+            public Direction LastDirection { get; set; } 
+            public List<Direction> UnexploredDirection { get; set; }
             public IList<string> PositionsInProcess { get; set; }  // Координаты с попаданиями
 
             public Memory()
@@ -25,15 +27,17 @@ namespace SeaBattleApp
 
             public void Reset()
             {
-                LastDirectionInLine = new int[] { 0, 0 };
-                UnexploredDirection = new List<int[]>();
-                foreach (int[] direction in _fourDirection) {
-                    UnexploredDirection.Add(direction);
-                }
+                LastDirection = new Direction(0, 0);
+                UnexploredDirection = new List<Direction>() { 
+                    new Direction(1, 0),
+                    new Direction(-1, 0),
+                    new Direction(0, 1),
+                    new Direction(0, -1)
+                };
                 PositionsInProcess.Clear();
             }
-
         }
+
         StreamWriter writer = null;
         public Memory TheMemory { get; set; }
         public BattleField Field { get; set; }
@@ -105,59 +109,47 @@ namespace SeaBattleApp
 
         private string GetRandomPosFromFourFreeDirection(string lastShotPosition)   // надо проверить те позиции по которым уже стреляли (проверить список всех позиций и исследованные направления) и выстрелить
         {
-            writer = new StreamWriter(@"C:\Users\UserGrig\CSharpProjects\SeaBattleGit\SeaBattleProject\SeaBattleApp\records.txt", true);
-            writer.WriteLine($"{new string('=', 50)}\nЗаход в метод GetRandomPosFromFourFreeDirection:\n {nameof(lastShotPosition)} = {lastShotPosition}");
-            int[] direction = { 100, 120 };
+/*            writer = new StreamWriter(@"C:\Users\UserGrig\CSharpProjects\SeaBattleGit\SeaBattleProject\SeaBattleApp\records.txt", true);
+            writer.WriteLine($"{new string('=', 50)}\nЗаход в метод GetRandomPosFromFourFreeDirection:\n {nameof(lastShotPosition)} = {lastShotPosition}");*/
+
+            var direction = new Direction(100, 100);
             Coordinate coord = new Coordinate(100, 120);
-            int loopCounter = 1;
             try {
                 do {
-                    writer.WriteLine($"Заход в цикл номер {loopCounter++}");
                     int randIdx = new Random().Next(0, TheMemory.UnexploredDirection.Count);
-                    writer.WriteLine($"randIdx = {randIdx}; UnexploredDirection.Count = {TheMemory.UnexploredDirection.Count}");
                     direction = TheMemory.UnexploredDirection[randIdx];
-                    TheMemory.UnexploredDirection = TheMemory.UnexploredDirection.Where(d => d[0] != direction[0] || d[1] != direction[1]).ToList();
-                    WriteDirectionsToFile(writer, TheMemory.UnexploredDirection);
-                    TheMemory.LastDirectionInLine = direction;
+                    TheMemory.UnexploredDirection.Remove(direction);
+                    TheMemory.LastDirection = direction;
                     coord = Coordinate.Parse(lastShotPosition);
-                    writer.WriteLine($"direction row = {direction[0]}; direction col = {direction[1]}");
-                } while (IsOutsideTheField(coord, direction) || !IsFreeDirection(coord, direction));
+
+                } while (IsOutsideTheField(coord, TheMemory.LastDirection) || !IsFreeDirection(coord, TheMemory.LastDirection));
             }
             catch (Exception ex) {
                 Console.WriteLine("???????" + ex.Message + "???????????????????????");
-                writer.WriteLine("???????" + ex.Message + "???????????????????????");
-                writer.WriteLine("@@@@@@@ All positions @@@@@@@@");
-                foreach (var item in AllPositionsForOpponent)
-                {
-                    writer.Write(item + " ");
-                }
-                return AllPositionsForOpponent[new Random().Next(0, AllPositionsForOpponent.Count)];  // Этот костыль сломал всю логику, появилось новое исключение выхода за границу в классе Battlefield!!!!
+                throw new Exception(ex.Message);
             }
             finally {
-                writer.Flush();
-                writer.Close();
+/*                writer.Flush();
+                writer.Close();*/
             }
-
-            return new Coordinate(coord.Row + direction[0], coord.Col + direction[1]).GetPosition();
-            
+            return new Coordinate(coord.Row + TheMemory.LastDirection.Row, coord.Col + TheMemory.LastDirection.Col).GetPosition();
         }
 
-        private static void WriteDirectionsToFile(StreamWriter writer, List<int[]> dirs)
+        private static void WriteDirectionsToFile(StreamWriter writer, List<Direction> dirs)
         {
-            writer.WriteLine("++++++ Print remainder directions After filtering +++++++");
             foreach (var item in dirs)
             {
-                writer.WriteLine($"dir[0] = {item[0]}; dir[1] = {item[1]}");
+                writer.WriteLine($"dir[0] = {item.Row}; dir[1] = {item.Col}");
             }
             writer.WriteLine("+++++++++++++");
         }
 
-        private bool IsOutsideTheField(Coordinate coord, int[] direction) => coord.Row + direction[0] > 9 || coord.Col + direction[1] > 9 ||
-                   coord.Row + direction[0] < 0 || coord.Col + direction[1] < 0;
+        private bool IsOutsideTheField(Coordinate coord, Direction direction) => coord.Row + direction.Row > 9 || coord.Col + direction.Col > 9 ||
+                   coord.Row + direction.Row < 0 || coord.Col + direction.Col < 0;
 
-        private bool IsFreeDirection(Coordinate coord, int[] direction) // проверяем, что в списке всех позиций нет новой рассчитаной позиции
+        private bool IsFreeDirection(Coordinate coord, Direction direction) // проверяем, что в списке всех позиций нет новой рассчитаной позиции
         {
-            var adjacentPos = new Coordinate(coord.Row + direction[0], coord.Col + direction[1]).GetPosition();
+            var adjacentPos = new Coordinate(coord.Row + direction.Row, coord.Col + direction.Col).GetPosition();
             if (AllPositionsForOpponent.Contains(adjacentPos)) return true;
             return false;
         }
@@ -165,18 +157,17 @@ namespace SeaBattleApp
         private string ShootInTheSameDirectionInLine(string position)
         {
             Coordinate lastCoord = Coordinate.Parse(position);
-            if (IsOutsideTheField(lastCoord, TheMemory.LastDirectionInLine) || 
-                !IsFreeDirection(lastCoord, TheMemory.LastDirectionInLine)) return FromTheInitialShotMoveInReverseDirection();       // если не корректно, то вернуться в начало и в обратную сторону
-            return new Coordinate(lastCoord.Row + TheMemory.LastDirectionInLine[0], lastCoord.Col + TheMemory.LastDirectionInLine[1]).GetPosition();
+            if (IsOutsideTheField(lastCoord, TheMemory.LastDirection) || 
+                !IsFreeDirection(lastCoord, TheMemory.LastDirection)) return FromTheInitialShotMoveInReverseDirection();       // если не корректно, то вернуться в начало и в обратную сторону
+            return new Coordinate(lastCoord.Row + TheMemory.LastDirection.Row, lastCoord.Col + TheMemory.LastDirection.Col).GetPosition();
         }
 
         private string FromTheInitialShotMoveInReverseDirection()
         {
             var firstPos = TheMemory.PositionsInProcess[0];         // позицию достаём из начала списка - это первое попадание
             Coordinate coord = Coordinate.Parse(firstPos);          // здесь проверять границу не надо, т.к. это единственное направление куда нам осталось двинуться
-            TheMemory.LastDirectionInLine[0] = -TheMemory.LastDirectionInLine[0];
-            TheMemory.LastDirectionInLine[1] = -TheMemory.LastDirectionInLine[1];
-            return new Coordinate(coord.Row + TheMemory.LastDirectionInLine[0], coord.Col + TheMemory.LastDirectionInLine[1]).GetPosition();
+            TheMemory.LastDirection = new Direction(-TheMemory.LastDirection.Row, -TheMemory.LastDirection.Col);
+            return new Coordinate(coord.Row + TheMemory.LastDirection.Row, coord.Col + TheMemory.LastDirection.Col).GetPosition();
         }
     }
 }
