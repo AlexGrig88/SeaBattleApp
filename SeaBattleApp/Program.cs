@@ -1,16 +1,10 @@
-﻿using System.Drawing;
+﻿
+using SeaBattleApp.Models;
 
 namespace SeaBattleApp;
 
 class Program
 {
-    public static string[] testActionForMe =
-    {
-        "1 1а", "1, 6а", "1 9в", "1, 10з", "2 3а в", "2, 8и г", "2 1к в", "3, 1д в", "3 1з г", "4, 3з в",
-    };
-
-    public static int testCounter = 4;
-
     static void Main(string[] args)
     {
         Play();
@@ -18,7 +12,6 @@ class Program
 
     static void Play()
     {
-
 
         var game = new Game();
         var border = new string('*', game.Greeting.Length);
@@ -37,8 +30,7 @@ class Program
 
 
         // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
-        game.AddShipEvent += HandleAddingAShip;
-        game.ByShotEvent += ShowGameBoardVer2;
+        game.FieldStatusChangedEvent += ShowGameBoardVer2;
         game.WriteMessageForPlayerEvent += Console.WriteLine;
 
 
@@ -92,7 +84,7 @@ class Program
 
         ShowGameBoardVer2(game);
 
-        Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите вашу пушку и пли (введите координату)!!!!\n");
+        Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
 
         bool isTheWinner;
        
@@ -109,25 +101,6 @@ class Program
         Console.WriteLine("\n" + border + "Конец игры" + border);
     }
 
-
-    static void HandleAddingAShip(object sender, Ship? ship) {
-        var game = (Game)sender;
-        if (ship != null)
-            WriteLineColor($"Установлен {ship.Length}-палубный корабль.", ConsoleColor.Green);
-        /*        Console.WriteLine("Ваше поле:");
-                ShowBattleField(game.CurrentField);*/
-        ShowGameBoardVer2(game);
-
-    }
-
-
-/*    private static void ShowGameBoard(Game game)
-    {
-        Console.WriteLine("\nВаше поле:");
-        ShowBattleField(game.MyField);
-        Console.WriteLine("\nПротивника поле:");
-        ShowBattleField(game.OpponentField);
-    }*/
     private static void ShowGameBoardVer2(Game game)
     {
         string spaceBetweenFields = new String(' ', game.MyField.Columns - 2);
@@ -226,7 +199,7 @@ class Program
             shipImg = 'S';
             Console.ForegroundColor = ConsoleColor.Green;
         }
-        else if (field[i, j] == (int)BattleField.CellState.Unexplored) { //|| field[i, j] == BattleField.MarkAShipInvisible) {
+        else if (field[i, j] == (int)BattleField.CellState.Unexplored || field[i, j] == BattleField.MarkAShipInvisible) {
             shipImg = '*';
             Console.ForegroundColor = ConsoleColor.Blue;
         }

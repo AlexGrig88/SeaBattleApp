@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 
-namespace SeaBattleApp
+namespace SeaBattleApp.Models
 {
 
     public class Ship
@@ -16,11 +16,12 @@ namespace SeaBattleApp
 
         public bool IsHorizontalOrientation { get; set; }
         public bool IsDestroyed { get; set; }
-        public int CounterRemainingParts {get; set; }
+        public int CounterRemainingParts { get; set; }
         public int Length
         {
             get => _length;
-            set {
+            set
+            {
                 if (value < 1) throw new Exception("ДЛИНА КОРАБЛЯ ДОЛЖНА БЫТЬ БОЛЬШЕ 0");
                 if (value > MAX_LENGTH) throw new Exception($"ДЛИНА КОРАБЛЯ НЕ ДОЛЖНА БЫТЬ БОЛЬШЕ {MAX_LENGTH}");
                 _length = value;
@@ -52,7 +53,8 @@ namespace SeaBattleApp
         public List<Coordinate> GetAllCoordinates()
         {
             var coords = new List<Coordinate>();
-            for (int i = 0; i < Length; i++) {
+            for (int i = 0; i < Length; i++)
+            {
                 if (IsHorizontalOrientation)
                     coords.Add(new Coordinate(BeginCoord.Row, BeginCoord.Col + i));
                 else
@@ -68,14 +70,16 @@ namespace SeaBattleApp
         public ISet<string> GetAroundPositions()
         {
             var positions = new HashSet<string>();
-            foreach (var pos in GetAllPositions()) {
-                foreach (var delta in around) {
+            foreach (var pos in GetAllPositions())
+            {
+                foreach (var delta in around)
+                {
                     string resPos = "";
                     char posChar = pos[^1];
                     if (pos.Length == 3)
-                        resPos += ($"{int.Parse(pos[..2]) + delta[0]}{(char)(posChar + delta[1] >= 'Й' ? posChar + delta[1] + 1 : posChar + delta[1])}");
+                        resPos += $"{int.Parse(pos[..2]) + delta[0]}{(char)(posChar + delta[1] >= 'Й' ? posChar + delta[1] + 1 : posChar + delta[1])}";
                     else
-                        resPos += ($"{int.Parse(pos[..1]) + delta[0]}{(char)(posChar + delta[1] >= 'Й' ? posChar + delta[1] + 1 : posChar + delta[1])}");
+                        resPos += $"{int.Parse(pos[..1]) + delta[0]}{(char)(posChar + delta[1] >= 'Й' ? posChar + delta[1] + 1 : posChar + delta[1])}";
                     positions.Add(resPos);
                 }
             }
@@ -85,16 +89,17 @@ namespace SeaBattleApp
         public override bool Equals(object? obj)
         {
             //Check for null and compare run-time types.
-            if ((obj == null) || ! this.GetType().Equals(obj.GetType()))
+            if (obj == null || !GetType().Equals(obj.GetType()))
             {
                 return false;
             }
-            else {
-                Ship other = (Ship) obj;
-                return (Length == other.Length) && (BeginCoord.Row == other.BeginCoord.Row) && (BeginCoord.Col == other.BeginCoord.Col);
+            else
+            {
+                Ship other = (Ship)obj;
+                return Length == other.Length && BeginCoord.Row == other.BeginCoord.Row && BeginCoord.Col == other.BeginCoord.Col;
             }
         }
 
-        public override int GetHashCode() => HashCode.Combine(this.Length, this.BeginCoord.Col, this.BeginCoord.Row);
+        public override int GetHashCode() => HashCode.Combine(Length, BeginCoord.Col, BeginCoord.Row);
     }
 }

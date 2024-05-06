@@ -1,14 +1,13 @@
 
 using System;
 using System.Text.RegularExpressions;
+using SeaBattleApp.Models;
 
 namespace SeaBattleApp
 {
     public class Game
     {
-        public delegate void AddShipHandler(object sender, Ship ship);
-        public event AddShipHandler? AddShipEvent;
-        public event Action<Game> ByShotEvent;
+        public event Action<Game> FieldStatusChangedEvent;
         public event Action<string> WriteMessageForPlayerEvent;
 
         public static Regex regexValidPosition = new Regex(@"^([1-9]|10)[А-ЕЖЗИК]$");
@@ -71,7 +70,6 @@ namespace SeaBattleApp
                 string selectedPosition = "";
 
                 selectedPosition = TheCompPlayer.ComputeMove2(isFirstShotInLoop);
-                // Console.WriteLine($"Комп стреляет по позиции: {selectedPosition}");
                 WriteMessageForPlayerEvent?.Invoke($"Комп стреляет по позиции: {selectedPosition}");
 
                 bool IsDestroyedShip = false;
@@ -80,35 +78,45 @@ namespace SeaBattleApp
                 TheCompPlayer.AllPositionsForOpponent.Remove(selectedPosition);  // выстрел произошёл, можно очистить позицию из списка всех позиций у компьютера
 
                 if (!isSuccess) {
-                    // Console.WriteLine("Компьютер промахнулся. Теперь ваш черед.");
                     WriteMessageForPlayerEvent?.Invoke("Компьютер промахнулся. Теперь ваш черед.");
                     break;
                 }
 
                 TheCompPlayer.TheMemory.PositionsInProcess.Add(selectedPosition); // успех выстрела, можно добавить в память компьютера данную розицию
                 if (!IsDestroyedShip) {
-                    // Console.WriteLine("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
                     WriteMessageForPlayerEvent?.Invoke("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
-                    Console.ReadKey();
+
+                    ComputerThinks();
                 }
                 else {
-                    Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает... нажмите клавишу, чтобы продолжить");
-                    // надо сбросить память компьютера в начальное состояние
-                    TheCompPlayer.ClearUnsablePositions(ship, false);
-                    TheCompPlayer.TheMemory.Reset();
-
-                    Console.ReadKey();
                     if (CurrentField.ShipsCounter == 0) {
-                        // Console.WriteLine("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
                         WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
                         isTheWinner = true;
                         return;
                     }
+                    Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает.");
+                    // надо сбросить память компьютера в начальное состояние
+                    TheCompPlayer.ClearUnsablePositions(ship, false);
+                    TheCompPlayer.TheMemory.Reset();
+
+                    ComputerThinks();
+                    
                 }
                 isFirstShotInLoop = false;
 
             } while (true);
 
+        }
+
+        private void ComputerThinks()
+        {
+            Console.WriteLine("\nНе спеши, думаю.");
+            for (int i = 0; i < 10; i++)
+            {
+                Console.Write(".");
+                Thread.Sleep(300);
+            }
+            Console.WriteLine();
         }
 
         public void PlayerMove(ref bool isTheWinner)
@@ -119,33 +127,29 @@ namespace SeaBattleApp
             (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
             while (isSuccess) {
                 if (!shipIsDestroyed) {
-                    // Console.WriteLine("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                     WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                 }
                 else {
-                    //Console.WriteLine("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
-                    WriteMessageForPlayerEvent?.Invoke("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
                     if (CurrentField.ShipsCounter == 0) {
-                        //Console.WriteLine("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
                         WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
                         isTheWinner = true;
                         return;
                     }
+                    WriteMessageForPlayerEvent?.Invoke("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
+                   
                 }
                 targetCoords = ReadValidPosition();
                 shipIsDestroyed = false;
                 (isSuccess, ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
             }
-            //Console.WriteLine("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
-            WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер... Нажмите клавишу!");
-            Console.ReadLine();
+            WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
+            ComputerThinks();
         }
 
         public string ReadValidPosition()
         {
             string coords = Console.ReadLine()?.ToUpper() ?? "DDD";
             while (!IsValidRuCoordinate(coords)) {
-                // Console.WriteLine("Координата не корректная!\nПопробуйте ещё раз!\n");
                 WriteMessageForPlayerEvent?.Invoke("Координата не корректная!\nПопробуйте ещё раз!\n");
                 coords = Console.ReadLine()?.ToUpper() ?? "DDD";
             }
@@ -156,7 +160,7 @@ namespace SeaBattleApp
             if (!MyField.TryAddTheShip(ship, coord, out string errorMsg)) {
                 return (false, errorMsg);
             };
-            AddShipEvent?.Invoke(this, ship);
+            FieldStatusChangedEvent?.Invoke(this);
             return (true, "Success");
         }
 
@@ -194,10 +198,8 @@ namespace SeaBattleApp
                 (isSuccess, ship) = CurrentField.TryHitTheShip(coord, ref IsDestroyedShip);
                 
             }
-            ByShotEvent?.Invoke(this);
+            FieldStatusChangedEvent?.Invoke(this);
             return (isSuccess, ship);    
         }
-
-
     }
 }

@@ -1,5 +1,4 @@
-
-namespace SeaBattleApp
+namespace SeaBattleApp.Models
 {
 
     public class BattleField
@@ -10,7 +9,7 @@ namespace SeaBattleApp
                 new int[] { 1, 1 }, new int[] {1, 0 }, new int[] {0, 1 }, new int[]{-1, -1 },
                 new int[]{-1, 0 }, new int[] {0, -1}, new int[] {1, -1 }, new int[] {-1, 1 }
                 };
-        
+
         public const char FIRST_CHAR_RU = 'А';
 
         public enum CellState { Unexplored = 0, Empty, BurningShip, DestroyedShip };   // состояние ячейки изменяется путём прибавления нового состояния к начальному 0
@@ -23,19 +22,22 @@ namespace SeaBattleApp
 
         public List<Ship> ShipsList { get; set; }
         public int[,] Field { get; private set; }
-        public int Rows { 
-            get => _rows; 
-            set {
-                if (value > ROW_MAX_VALUE) 
+        public int Rows
+        {
+            get => _rows;
+            set
+            {
+                if (value > ROW_MAX_VALUE)
                     throw new Exception($"КОЛЛИЧЕСТВО СТРОК НЕ ДОЛЖНО БЫТЬ БОЛЬШЕ {ROW_MAX_VALUE}");
                 _rows = value;
             }
         }
-        public int Columns 
-        { 
+        public int Columns
+        {
             get => _columns;
-            set {
-                if (value > COLUMN_MAX_VALUE) 
+            set
+            {
+                if (value > COLUMN_MAX_VALUE)
                     throw new Exception($"КОЛЛИЧЕСТВО СТОЛБЦОВ НЕ ДОЛЖНО БЫТЬ БОЛЬШЕ {COLUMN_MAX_VALUE}");
                 _columns = value;
             }
@@ -49,8 +51,8 @@ namespace SeaBattleApp
         {
             _isItMyField = isItMyField;
             ShipsCounter = 10;
-            ExpectedMapLengthByCounter = new Dictionary<int, int>() { {1, 4}, {2, 3}, {3, 2}, {4, 1} };
-            CurrentMapLengthByCounter = new Dictionary<int, int>() { {1, 0}, {2, 0}, {3, 0}, {4, 0} };
+            ExpectedMapLengthByCounter = new Dictionary<int, int>() { { 1, 4 }, { 2, 3 }, { 3, 2 }, { 4, 1 } };
+            CurrentMapLengthByCounter = new Dictionary<int, int>() { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 } };
             Rows = rows;
             Columns = columns;
             Field = new int[Rows, Columns];
@@ -64,18 +66,21 @@ namespace SeaBattleApp
             var validCoords1 = beginCoord.Row >= 0 || beginCoord.Col >= 0 || beginCoord.Row < _rows || beginCoord.Col < _columns;
             var validCoords2 = ship.IsHorizontalOrientation ?
                                beginCoord.Col + ship.Length <= _columns :
-                               beginCoord.Row + ship.Length <= _rows; 
-            if (!validCoords1 || !validCoords2) {
+                               beginCoord.Row + ship.Length <= _rows;
+            if (!validCoords1 || !validCoords2)
+            {
                 errorMassage = "КООРДИНАТЫ ЛЕЖАТ ЗА ПРЕДЕЛАМИ ПОЛЯ";
                 return false;
             }
-            
-            if (CurrentMapLengthByCounter[ship.Length] >= ExpectedMapLengthByCounter[ship.Length]) {
+
+            if (CurrentMapLengthByCounter[ship.Length] >= ExpectedMapLengthByCounter[ship.Length])
+            {
                 errorMassage = $"ЧИСЛО КОРАБЛЕЙ С ДЛИНОЙ {ship.Length} ДОЛЖНО БЫТЬ НЕ БОЛЬШЕ {ExpectedMapLengthByCounter[ship.Length]}";
                 return false;
             }
 
-            if (!TryPutInTheField(ship, beginCoord, out string msg)) {
+            if (!TryPutInTheField(ship, beginCoord, out string msg))
+            {
                 errorMassage = msg;
                 return false;
             }
@@ -88,19 +93,23 @@ namespace SeaBattleApp
         private bool TryPutInTheField(Ship ship, Coordinate begCoord, out string errorMassage)
         {
             errorMassage = "ok";
-            for (int i = 0, j = 0; i < ship.Length && j < ship.Length;) {
-                if (Field[begCoord.Row + i, begCoord.Col + j] == MarkIsAShip || Field[begCoord.Row + i, begCoord.Col + j] == MarkAShipInvisible) {
+            for (int i = 0, j = 0; i < ship.Length && j < ship.Length;)
+            {
+                if (Field[begCoord.Row + i, begCoord.Col + j] == MarkIsAShip || Field[begCoord.Row + i, begCoord.Col + j] == MarkAShipInvisible)
+                {
                     errorMassage = "ПРИСУТСТВУЮТ ПЕРЕСЕКАЮЩИЕСЯ ЯЧЕЙКИ";
                     return false;
                 }
-                if (!ValidAdjacentCells(begCoord.Row + i, begCoord.Col + j, out string errorMsg)) {
+                if (!ValidAdjacentCells(begCoord.Row + i, begCoord.Col + j, out string errorMsg))
+                {
                     errorMassage = errorMsg;
                     return false;
                 }
                 if (ship.IsHorizontalOrientation) ++j;
                 else ++i;
             }
-            for (int i = 0, j = 0; i < ship.Length && j < ship.Length;) {
+            for (int i = 0, j = 0; i < ship.Length && j < ship.Length;)
+            {
                 Field[begCoord.Row + i, begCoord.Col + j] = _isItMyField ? MarkIsAShip : MarkAShipInvisible;
                 if (ship.IsHorizontalOrientation) ++j;
                 else ++i;
@@ -115,7 +124,8 @@ namespace SeaBattleApp
             {
                 if (IsNotValidBoundaries(rowPos, colPos, i))
                     continue;
-                if (Field[rowPos + _around[i][0], colPos + _around[i][1]] == MarkIsAShip || Field[rowPos + _around[i][0], colPos + _around[i][1]] == MarkAShipInvisible) {
+                if (Field[rowPos + _around[i][0], colPos + _around[i][1]] == MarkIsAShip || Field[rowPos + _around[i][0], colPos + _around[i][1]] == MarkAShipInvisible)
+                {
                     errorMsg = "НЕВОЗМОЖНО УСТАНОВИТЬ КОРАБЛЬ КАСАЮЩИЙСЯ СОСЕДНЕГО КОРАБЛЯ";
                     return false;
                 }
@@ -125,40 +135,47 @@ namespace SeaBattleApp
 
         public (bool, Ship?) TryHitTheShip(Coordinate coord, ref bool IsDestroyedShip)
         {
-            Ship? targetShip = this.ShipsList.FirstOrDefault(ship => ship.GetAllCoordinates().Contains(coord));
+            Ship? targetShip = ShipsList.FirstOrDefault(ship => ship.GetAllCoordinates().Contains(coord));
             bool isHit = false;
 
             if (Field[coord.Row, coord.Col] == (int)CellState.Empty ||
                     Field[coord.Row, coord.Col] == (int)CellState.DestroyedShip ||
-                        Field[coord.Row, coord.Col] == (int)CellState.BurningShip) {
+                        Field[coord.Row, coord.Col] == (int)CellState.BurningShip)
+            {
                 IsDestroyedShip = false;
                 return (false, targetShip);
-            } 
-            else if (Field[coord.Row, coord.Col] == (int)CellState.Unexplored) {
+            }
+            else if (Field[coord.Row, coord.Col] == (int)CellState.Unexplored)
+            {
                 Field[coord.Row, coord.Col] = (int)CellState.Empty;
                 IsDestroyedShip = false;
                 return (false, targetShip);
             }
-            else if (Field[coord.Row, coord.Col] == MarkIsAShip || Field[coord.Row, coord.Col] == MarkAShipInvisible) {
+            else if (Field[coord.Row, coord.Col] == MarkIsAShip || Field[coord.Row, coord.Col] == MarkAShipInvisible)
+            {
                 Field[coord.Row, coord.Col] = (int)CellState.BurningShip;
                 isHit = true;
             }
-            else {
+            else
+            {
                 throw new Exception("Error!!!.Ячейки с таким состоянием не существует. Это баг, надо проверять.");
             }
 
-            if (targetShip != null) {
+            if (targetShip != null)
+            {
                 --targetShip.CounterRemainingParts;
-                if (targetShip.CounterRemainingParts > 0) {
+                if (targetShip.CounterRemainingParts > 0)
+                {
                     IsDestroyedShip = false;
                     return (isHit, targetShip);
                 }
-                else {
+                else
+                {
                     Field[coord.Row, coord.Col] = (int)CellState.DestroyedShip;
                     MarkAroundEmpty(targetShip);
                     IsDestroyedShip = true;
-                    this.ShipsList.Remove(targetShip);
-                    --ShipsCounter;      
+                    ShipsList.Remove(targetShip);
+                    --ShipsCounter;
                 }
             }
             return (isHit, targetShip);
@@ -166,15 +183,20 @@ namespace SeaBattleApp
 
         private void MarkAroundEmpty(Ship ship)
         {
-            for (int i = 0; i < _around.GetLength(0); i++) {
-                foreach (var coord in ship.GetAllCoordinates()) {
-                    if (IsNotValidBoundaries(coord.Row, coord.Col, i) || Field[coord.Row + _around[i][0], coord.Col + _around[i][1]] == (int)CellState.DestroyedShip) {
+            for (int i = 0; i < _around.GetLength(0); i++)
+            {
+                foreach (var coord in ship.GetAllCoordinates())
+                {
+                    if (IsNotValidBoundaries(coord.Row, coord.Col, i) || Field[coord.Row + _around[i][0], coord.Col + _around[i][1]] == (int)CellState.DestroyedShip)
+                    {
                         continue;
                     }
-                    if (Field[coord.Row + _around[i][0], coord.Col + _around[i][1]] == (int)CellState.BurningShip) {
+                    if (Field[coord.Row + _around[i][0], coord.Col + _around[i][1]] == (int)CellState.BurningShip)
+                    {
                         Field[coord.Row + _around[i][0], coord.Col + _around[i][1]] = (int)CellState.DestroyedShip;
                     }
-                    else {
+                    else
+                    {
                         Field[coord.Row + _around[i][0], coord.Col + _around[i][1]] = (int)CellState.Empty;
                     }
                 }
@@ -184,7 +206,7 @@ namespace SeaBattleApp
         private bool IsNotValidBoundaries(int row, int col, int i) => row + _around[i][0] < 0 || row + _around[i][0] >= Rows ||
                     col + _around[i][1] < 0 || col + _around[i][1] >= Columns;
 
-    } 
+    }
 
 
 }
