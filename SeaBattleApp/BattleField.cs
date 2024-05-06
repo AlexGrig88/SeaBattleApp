@@ -123,7 +123,7 @@ namespace SeaBattleApp
             return true;
         }
 
-        public (bool, Ship?) TryHitTheShip(Coordinate coord, ref bool shipIsDestroyed)
+        public (bool, Ship?) TryHitTheShip(Coordinate coord, ref bool IsDestroyedShip)
         {
             Ship? targetShip = this.ShipsList.FirstOrDefault(ship => ship.GetAllCoordinates().Contains(coord));
             bool isHit = false;
@@ -131,12 +131,12 @@ namespace SeaBattleApp
             if (Field[coord.Row, coord.Col] == (int)CellState.Empty ||
                     Field[coord.Row, coord.Col] == (int)CellState.DestroyedShip ||
                         Field[coord.Row, coord.Col] == (int)CellState.BurningShip) {
-                shipIsDestroyed = false;
+                IsDestroyedShip = false;
                 return (false, targetShip);
             } 
             else if (Field[coord.Row, coord.Col] == (int)CellState.Unexplored) {
                 Field[coord.Row, coord.Col] = (int)CellState.Empty;
-                shipIsDestroyed = false;
+                IsDestroyedShip = false;
                 return (false, targetShip);
             }
             else if (Field[coord.Row, coord.Col] == MarkIsAShip || Field[coord.Row, coord.Col] == MarkAShipInvisible) {
@@ -150,13 +150,14 @@ namespace SeaBattleApp
             if (targetShip != null) {
                 --targetShip.CounterRemainingParts;
                 if (targetShip.CounterRemainingParts > 0) {
-                    shipIsDestroyed = false;
+                    IsDestroyedShip = false;
                     return (isHit, targetShip);
                 }
                 else {
                     Field[coord.Row, coord.Col] = (int)CellState.DestroyedShip;
                     MarkAroundEmpty(targetShip);
-                    shipIsDestroyed = true;
+                    IsDestroyedShip = true;
+                    this.ShipsList.Remove(targetShip);
                     --ShipsCounter;      
                 }
             }

@@ -9,112 +9,41 @@ namespace SeaBattleApp
 {
     public class CompPlayer
     {
-        // Hit - попадание в корабль
+
         public class Memory
         {
-            private int[][] _fourDirection = new int[4][] { new int[]{0, 1}, new int[] {0, -1}, new int[] {1, 0}, new int[] {-1, 0} };
-            public bool IsHitFirst { get; set; }            // первое попадание?
-            public bool IsHitContinuous { get; set; }       // неприрывные попадания?
-            public bool IsDestroyedShip { get; set; }       // корабль уничтожен
-            public bool DirectionIsDefined { get; set; }    // определено ли направление движения вдоль прямой? (если есть 2 попадания, то да)
-            public Coordinate FirstHitCoord { get; set; }
-            public int HitCounter { get; set; } = 0;
-
-            public string LastPosition { get; set; } 
-            public int[] LastDirection { get; set; } 
-            //public List<int[]> ExploredDirection { get; set; } = new List<int[]>();
+            private int[][] _fourDirection = new int[4][] { new int[] { 0, 1 }, new int[] { 0, -1 }, new int[] { 1, 0 }, new int[] { -1, 0 } };
+            public int[] LastDirectionInLine { get; set; } 
             public List<int[]> UnexploredDirection { get; set; }
-            public List<Coordinate> InProgressCoordinates { get; set; }  // Координаты с попаданиями
-
+            public IList<string> PositionsInProcess { get; set; }  // Координаты с попаданиями
 
             public Memory()
             {
+                PositionsInProcess = new List<string>();
                 Reset();
             }
 
             public void Reset()
             {
-                FirstHitCoord = new Coordinate(-1, -1);
-                IsHitFirst = true;
-                IsHitContinuous = false;
-                IsDestroyedShip = false;
-                DirectionIsDefined = false;
-                LastDirection = new int[] { 0, 0 };
-                LastPosition = string.Empty;
-                HitCounter = 0;
+                LastDirectionInLine = new int[] { 0, 0 };
                 UnexploredDirection = new List<int[]>();
                 foreach (int[] direction in _fourDirection) {
                     UnexploredDirection.Add(direction);
                 }
+                PositionsInProcess.Clear();
             }
-
-            public string GetRandomInFourDirection(string pos)  // получение новой рандомной координаты из 4-ёх взаимно перпендикулярных направлений
-            {
-                /*                int randIdx = new Random().Next(0, _fourDirection.Length);
-                                LastDirection = _fourDirection[randIdx];*/
-                LastDirection = UnexploredDirection[new Random().Next(0, UnexploredDirection.Count)];
-                UnexploredDirection.Remove(LastDirection);
-                //ExploredDirection.Add(LastDirection);
-                Coordinate coord = Coordinate.Parse(pos);
-                if (IsNotValidDirection(coord)) return GetRandomInFourDirection(pos);  // если вышли за границы, то рекурсивно заново запускаем метод с оставшимися неисследованными направлениями
-                LastPosition = new Coordinate(coord.Row + LastDirection[0], coord.Col + LastDirection[1]).GetPosition();
-                return LastPosition;
-            }
-
-            public string FromTheInitialHitMoveInReverseDirection(string position)
-            {
-                // берём последнее направление и инвертируем и двигаемся дальше
-                LastDirection[0] = -LastDirection[0];
-                LastDirection[1] = -LastDirection[1];
-                LastPosition = FirstHitCoord.GetPosition();
-                return MoveInTheSameDirection(LastPosition);
-            }
-
-            public string MoveInTheSameDirection(string position)
-            {
-                Coordinate lastCoord = Coordinate.Parse(LastPosition);
-                if (IsNotValidDirection(lastCoord)) return FromTheInitialHitMoveInReverseDirection(position); // если упёрлись в границу, то вернуться в начало и в обратную сторону
-                string positionNew = new Coordinate(lastCoord.Row + LastDirection[0], lastCoord.Col + LastDirection[1]).GetPosition();
-                LastPosition = positionNew;
-                return positionNew;
-            }
-
-            internal string GetPositionFromRemainingDirections(string position)
-            {
-                /*                int[]? newDirection = UnexploredDirection[0];
-                                foreach (var explored in ExploredDirection) {
-                                    foreach (var dir in _fourDirection) {
-                                        if ((dir[0] != explored[0]) || (dir[1] != explored[1])) {
-                                            newDirection = dir;
-                                            break;
-                                        }
-                                    }
-                                }
-                                LastDirection = newDirection?? new int[] { 0, 0 };
-                                ExploredDirection.Add(LastDirection);*/
-                LastDirection = UnexploredDirection[0];
-                UnexploredDirection.Remove(LastDirection);
-                Coordinate coord = Coordinate.Parse(position);
-                if (IsNotValidDirection(coord)) return GetPositionFromRemainingDirections(position);
-                LastPosition = new Coordinate(coord.Row + LastDirection[0], coord.Col + LastDirection[1]).GetPosition();
-                return LastPosition;
-            }
-
-            private bool IsNotValidDirection(Coordinate coord) => coord.Row + LastDirection[0] > 9 || coord.Col + LastDirection[1] > 9 ||
-                    coord.Row + LastDirection[0] < 0 || coord.Col + LastDirection[1] < 0;
 
         }
-
+        StreamWriter writer = null;
         public Memory TheMemory { get; set; }
         public BattleField Field { get; set; }
-        public List<string> AllPositions { get; set; }
-        private (string pos, bool isHorizontal, bool isUpOrRight) SavedPos { get; set; }
-        private bool _wasChangeDirection = false;
-
+        public List<string> AllPositionsForOpponent { get; set; }
+        public List<string> AllPositionsComp { get; set; }
         public CompPlayer(BattleField field)
         {
             Field = field;
-            AllPositions = generateAllPositions(field.Rows, field.Columns);
+            AllPositionsForOpponent = generateAllPositions(field.Rows, field.Columns);
+            AllPositionsComp = generateAllPositions(field.Columns, field.Rows);
             TheMemory = new Memory();
         }
 
@@ -133,152 +62,121 @@ namespace SeaBattleApp
             return positions;
         }
 
-        public void RemoveUnvailablePositions(string pos, int len, bool isHorizontal)
+        public void RestoreAllPositionsComp() => AllPositionsComp = generateAllPositions(Field.Rows, Field.Columns);
+
+        public void ClearUnsablePositions(Ship? ship, bool isItPosionsOfComputerField)
         {
-            var positionsForDelete = new HashSet<string>();
-            positionsForDelete.Add(pos);
-            addAllAroundPositions(positionsForDelete, pos);
-            if (isHorizontal)
-            {
-                for (int i = 1; i < len; i++)
-                {
-                    var nextHPos = NextHorizontPos(pos, 1);
-                    positionsForDelete.Add(NextHorizontPos(pos, 1));
-                    addAllAroundPositions(positionsForDelete, nextHPos);
-                }
+            if (ship != null && isItPosionsOfComputerField) {
+                AllPositionsComp = AllPositionsComp.Except(ship.GetAllPositionsWithAround()).ToList();
             }
-            else
-            {
-                for (int i = 1; i < len; i++)
-                {
-                    var nextVPos = NextVerticalPos(pos, 1);
-                    positionsForDelete.Add(nextVPos);
-                    addAllAroundPositions(positionsForDelete, nextVPos);
-                }
+            else if (ship != null && !isItPosionsOfComputerField) {
+                AllPositionsForOpponent = AllPositionsForOpponent.Except(ship.GetAllPositionsWithAround()).ToList(); // очищаем позиции вокруг корабля
             }
-            AllPositions = AllPositions.Where(p => positionsForDelete.All(pos => pos != p)).ToList();
-        }
-
-        private void addAllAroundPositions(HashSet<string> positionsForDelete, string pos)
-        {
-
-            var nextHPos = NextHorizontPos(pos, 1);
-            positionsForDelete.Add(nextHPos);
-            positionsForDelete.Add(NextVerticalPos(nextHPos, 1));
-            positionsForDelete.Add(NextVerticalPos(nextHPos, -1));
-            var prevHpos = NextHorizontPos(pos, -1);
-            positionsForDelete.Add(prevHpos);
-            positionsForDelete.Add(NextVerticalPos(prevHpos, 1));
-            positionsForDelete.Add(NextVerticalPos(prevHpos, -1));
-
-            positionsForDelete.Add(NextVerticalPos(pos, 1));
-            positionsForDelete.Add(NextVerticalPos(pos, -1));
-
-        }
-
-        private string NextHorizontPos(string pos, int delta)
-        {
-            if (delta == 0) return pos;
-            char posChar = (char)(pos[pos.Length - 1] + delta);
-            if (posChar == 'Ё' || posChar == 'Й') posChar = (char)(posChar + delta);
-            return pos.Substring(0, pos.Length - 1) + posChar;
-        }
-
-        private string NextVerticalPos(string pos, int delta)
-        {
-            if (delta == 0) return pos;
-            int posNum = Convert.ToInt32(pos.Substring(0, pos.Length - 1));
-            return (posNum + delta).ToString() + pos[pos.Length - 1];
-        }
-
-        public void RestoreAllPositions()
-        {
-            AllPositions = generateAllPositions(Field.Rows, Field.Columns);
-        }
-
-        /// <summary>
-        /// Метод рассчитывает новую позицию, когда состояние компьютера, что он в процессе доуничтожения подпитого судна
-        /// т.е. у него в памяти есть координата отличная от (-1, -1)
-        /// </summary>
-        /// <param name="position"></param>
-        /// <returns></returns>
-        public string ComputeNewPosition(string position)
-        {
-            string positionNew = "";
-
-            if (TheMemory.IsDestroyedShip) {
-                TheMemory.Reset();       // сбросить память в начальное состояние
-                return AllPositions[new Random().Next(0, AllPositions.Count)];
-            }
-
-            if (TheMemory.IsHitFirst) {
-                TheMemory.IsHitFirst = false;
-                TheMemory.FirstHitCoord = Coordinate.Parse(position);
-                positionNew = TheMemory.GetRandomInFourDirection(position); 
-            }   
             else {
-                if (TheMemory.IsHitContinuous) {
-                    //если зашли сюда, значит было два попадания подряд в одном ходе и значит продолжаем двигаться в том же направлении
-                    positionNew = TheMemory.MoveInTheSameDirection(position);
+                throw new Exception("Не найден корабль. Ошибка логики программы. Исправляй!");
+            }
+        }
+
+        internal string ComputeMove2(bool isFirstShotInLoop)
+        {
+            if (isFirstShotInLoop && TheMemory.PositionsInProcess.Count == 0) {  // клмпьютер стреляет первый раз на своём ходу и в данный момент нет ни одного раненного корабля
+                return AllPositionsForOpponent[new Random().Next(0, AllPositionsForOpponent.Count)];
+            }
+
+            if (isFirstShotInLoop && TheMemory.PositionsInProcess.Count == 1) {   // клмпьютер стреляет первый раз, и есть в памяти инфа об одной подбитой 
+                return GetRandomPosFromFourFreeDirection(TheMemory.PositionsInProcess[^1]);
+            }
+            else if (isFirstShotInLoop && TheMemory.PositionsInProcess.Count > 1) {     // если начали стрелять на новом ходу и у нас больше одного ранения
+                return ShootInTheSameDirectionInLine(TheMemory.PositionsInProcess[^1]);                 // значит стреляем вдоль одной линии
+            }
+            // ниже идёт череда непрерывных выстрелов
+            else {
+                if (TheMemory.PositionsInProcess.Count == 0) {       // если на первом выстреле он потопил однопалубный и стреляет второй раз                
+                    return AllPositionsForOpponent[new Random().Next(0, AllPositionsForOpponent.Count)];
+                }
+                if (TheMemory.PositionsInProcess.Count == 1) {                       
+                    return GetRandomPosFromFourFreeDirection(TheMemory.PositionsInProcess[^1]);
                 }
                 else {
-                    if (TheMemory.DirectionIsDefined && TheMemory.LastPosition == TheMemory.FirstHitCoord.GetPosition()) { // если направление уже было определено, но прервалась неприрывность попаданий, то вернёмся в начало и двинемся в противоположном направлении
-                        positionNew = TheMemory.FromTheInitialHitMoveInReverseDirection(position);
-                    } 
-                    else if (TheMemory.DirectionIsDefined) {
-                        TheMemory.MoveInTheSameDirection(position);
-                    }
-                    else {    // направление не определено, т.е. у нас есть только одно попадание, поэтому надо сначала вернуться в точку первого попадания и затем
-                        position = TheMemory.FirstHitCoord.GetPosition(); // можно затереть пришедшую позициюю т.к. она была мимо и уже удалена из списка всех позиций
-                        positionNew = TheMemory.GetPositionFromRemainingDirections(position); // выбираем направление из оставшихся после первого выстрела
-                    }
+                    return ShootInTheSameDirectionInLine(TheMemory.PositionsInProcess[^1]);
                 }
             }
-
-            return positionNew;
         }
 
-        private string GetPositionFromRemainingDirections(string position)
+        private string GetRandomPosFromFourFreeDirection(string lastShotPosition)   // надо проверить те позиции по которым уже стреляли (проверить список всех позиций и исследованные направления) и выстрелить
         {
-            throw new NotImplementedException();
-        }
-
-/*        private string FromTheInitialHitMoveInOppositeDirection(string position) // аргумент нам тут не важен, т.к. мы возвращаемся в место первого попадания
-        {
-            // берём последнее направление и инвертируем и двигаемся дальше
-            TheMemory.LastDirection[0] = -TheMemory.LastDirection[0];
-            TheMemory.LastDirection[1] = -TheMemory.LastDirection[1];
-            TheMemory.LastPosition = TheMemory.FirstHitCoord.GetPosition();
-            return MoveInTheSameDirection(TheMemory.LastPosition);
-        }*/
-
-/*        public string MoveInTheSameDirection(string position)
-        {
-            Coordinate lastCoord = Coordinate.Parse(TheMemory.LastPosition);
-            string positionNew =  new Coordinate(lastCoord.Row + TheMemory.LastDirection[0], lastCoord.Col + TheMemory.LastDirection[1]).GetPosition();
-            TheMemory.LastPosition = positionNew;
-            return positionNew;
-        }*/
-
-        internal string ComputeFirstMove()
-        {
-            // сначала проверить если до этого были попадания, то отправить в метод расчета новой позиции, если нет, то сгенерировать рандомную позицию
-            if (TheMemory.LastPosition == string.Empty) {
-                return AllPositions[new Random().Next(0, AllPositions.Count)];
+            writer = new StreamWriter(@"C:\Users\UserGrig\CSharpProjects\SeaBattleGit\SeaBattleProject\SeaBattleApp\records.txt", true);
+            writer.WriteLine($"{new string('=', 50)}\nЗаход в метод GetRandomPosFromFourFreeDirection:\n {nameof(lastShotPosition)} = {lastShotPosition}");
+            int[] direction = { 100, 120 };
+            Coordinate coord = new Coordinate(100, 120);
+            int loopCounter = 1;
+            try {
+                do {
+                    writer.WriteLine($"Заход в цикл номер {loopCounter++}");
+                    int randIdx = new Random().Next(0, TheMemory.UnexploredDirection.Count);
+                    writer.WriteLine($"randIdx = {randIdx}; UnexploredDirection.Count = {TheMemory.UnexploredDirection.Count}");
+                    direction = TheMemory.UnexploredDirection[randIdx];
+                    TheMemory.UnexploredDirection = TheMemory.UnexploredDirection.Where(d => d[0] != direction[0] || d[1] != direction[1]).ToList();
+                    WriteDirectionsToFile(writer, TheMemory.UnexploredDirection);
+                    TheMemory.LastDirectionInLine = direction;
+                    coord = Coordinate.Parse(lastShotPosition);
+                    writer.WriteLine($"direction row = {direction[0]}; direction col = {direction[1]}");
+                } while (IsOutsideTheField(coord, direction) || !IsFreeDirection(coord, direction));
             }
-            return ComputeNewPosition(TheMemory.LastPosition);
+            catch (Exception ex) {
+                Console.WriteLine("???????" + ex.Message + "???????????????????????");
+                writer.WriteLine("???????" + ex.Message + "???????????????????????");
+                writer.WriteLine("@@@@@@@ All positions @@@@@@@@");
+                foreach (var item in AllPositionsForOpponent)
+                {
+                    writer.Write(item + " ");
+                }
+                return AllPositionsForOpponent[new Random().Next(0, AllPositionsForOpponent.Count)];
+            }
+            finally {
+                writer.Flush();
+                writer.Close();
+            }
+
+            return new Coordinate(coord.Row + direction[0], coord.Col + direction[1]).GetPosition();
             
         }
 
-        public void ClearUnsablePositions(Ship? ship, string position)
+        private static void WriteDirectionsToFile(StreamWriter writer, List<int[]> dirs)
         {
-            if (ship != null && TheMemory.IsDestroyedShip) {
-                AllPositions = AllPositions.Except(ship.GetAllPositionsWithAround()).ToList();
+            writer.WriteLine("++++++ Print remainder directions After filtering +++++++");
+            foreach (var item in dirs)
+            {
+                writer.WriteLine($"dir[0] = {item[0]}; dir[1] = {item[1]}");
             }
-            else {
-                AllPositions.Remove(position);
-                //throw new Exception("Не найден корабль. Ошибка логики программы. Исправляй!");
-            }
+            writer.WriteLine("+++++++++++++");
+        }
+
+        private bool IsOutsideTheField(Coordinate coord, int[] direction) => coord.Row + direction[0] > 9 || coord.Col + direction[1] > 9 ||
+                   coord.Row + direction[0] < 0 || coord.Col + direction[1] < 0;
+
+        private bool IsFreeDirection(Coordinate coord, int[] direction) // проверяем, что в списке всех позиций нет новой рассчитаной позиции
+        {
+            var adjacentPos = new Coordinate(coord.Row + direction[0], coord.Col + direction[1]).GetPosition();
+            if (AllPositionsForOpponent.Contains(adjacentPos)) return true;
+            return false;
+        }
+
+        private string ShootInTheSameDirectionInLine(string position)
+        {
+            Coordinate lastCoord = Coordinate.Parse(position);
+            if (IsOutsideTheField(lastCoord, TheMemory.LastDirectionInLine) || 
+                !IsFreeDirection(lastCoord, TheMemory.LastDirectionInLine)) return FromTheInitialShotMoveInReverseDirection();       // если не корректно, то вернуться в начало и в обратную сторону
+            return new Coordinate(lastCoord.Row + TheMemory.LastDirectionInLine[0], lastCoord.Col + TheMemory.LastDirectionInLine[1]).GetPosition();
+        }
+
+        private string FromTheInitialShotMoveInReverseDirection()
+        {
+            var firstPos = TheMemory.PositionsInProcess[0];         // позицию достаём из начала списка - это первое попадание
+            Coordinate coord = Coordinate.Parse(firstPos);          // здесь проверять границу не надо, т.к. это единственное направление куда нам осталось двинуться
+            TheMemory.LastDirectionInLine[0] = -TheMemory.LastDirectionInLine[0];
+            TheMemory.LastDirectionInLine[1] = -TheMemory.LastDirectionInLine[1];
+            return new Coordinate(coord.Row + TheMemory.LastDirectionInLine[0], coord.Col + TheMemory.LastDirectionInLine[1]).GetPosition();
         }
     }
 }

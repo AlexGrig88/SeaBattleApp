@@ -40,6 +40,15 @@ namespace SeaBattleApp
             CounterRemainingParts = length;
         }
 
+        public Ship(Coordinate beginCoord, int length, bool isHorizontalOrientation = true)
+        {
+            BeginCoord = beginCoord;
+            Length = length;
+            IsHorizontalOrientation = isHorizontalOrientation;
+            IsDestroyed = false;
+            CounterRemainingParts = length;
+        }
+
         public List<Coordinate> GetAllCoordinates()
         {
             var coords = new List<Coordinate>();

@@ -73,16 +73,17 @@ namespace SeaBattleApp
                 var ship = ChooseTheShip(shipsOutside, len);
                 ship.IsHorizontalOrientation = arrOfBool[random.Next(0, 2)];
                 var randIdx = random.Next(0, size);
-                while (!OpponentField.TryAddTheShip(ship, Coordinate.Parse(TheCompPlayer.AllPositions[randIdx]), out string errorMsg))
+                while (!OpponentField.TryAddTheShip(ship, Coordinate.Parse(TheCompPlayer.AllPositionsComp[randIdx]), out string errorMsg))
                 {
                     randIdx = random.Next(0, size);
                     ship.IsHorizontalOrientation = arrOfBool[random.Next(0, 2)];
                 }
-                
-                TheCompPlayer.RemoveUnvailablePositions(TheCompPlayer.AllPositions[randIdx], len, ship.IsHorizontalOrientation);
-                size = TheCompPlayer.AllPositions.Count;
+
+                ship.BeginCoord = Coordinate.Parse(TheCompPlayer.AllPositionsComp[randIdx]);
+                TheCompPlayer.ClearUnsablePositions(ship, true);
+                size = TheCompPlayer.AllPositionsComp.Count;
             }
-            TheCompPlayer.RestoreAllPositions();   // компьютер восстанавливает в памяти все возможные позиции
+            TheCompPlayer.RestoreAllPositionsComp();   // компьютер восстанавливает в памяти все возможные позиции
         }
 
         public Ship ChooseTheShip(List<Ship> ships, int length)
@@ -93,15 +94,15 @@ namespace SeaBattleApp
             return ship;
         }
 
-        public (bool, Ship?) TryShootAtTheTarget(Coordinate coord, bool isItMyMove, ref bool shipIsDestroyed) {
+        public (bool, Ship?) TryShootAtTheTarget(Coordinate coord, bool isItMyMove, ref bool IsDestroyedShip) {
             (bool isSuccess, Ship? ship) = (false, null);
-            if (isItMyMove) {  // логика для живого игрока
+            if (isItMyMove) {       
                 CurrentField = OpponentField;
-                (isSuccess, ship) = CurrentField.TryHitTheShip(coord, ref shipIsDestroyed);
+                (isSuccess, ship) = CurrentField.TryHitTheShip(coord, ref IsDestroyedShip);
             }
-            else {  // логика для компьютера
+            else {          
                 CurrentField = MyField;
-                (isSuccess, ship) = CurrentField.TryHitTheShip(coord, ref shipIsDestroyed);
+                (isSuccess, ship) = CurrentField.TryHitTheShip(coord, ref IsDestroyedShip);
                 
             }
             ByShotEvent?.Invoke(this);
