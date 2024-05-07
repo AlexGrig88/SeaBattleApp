@@ -2,6 +2,7 @@
 using System;
 using System.Text.RegularExpressions;
 using SeaBattleApp.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace SeaBattleApp
 {
@@ -14,13 +15,14 @@ namespace SeaBattleApp
 
         public enum Mode { SinglePlayer, TwoPlayers }
 
-        public Mode ModeGame { get; init; }
+        public Mode ModeGame { get; set; }
 
         public string Greeting => "Добро пожаловать на игру \"Морской бой!\"";
         public BattleField MyField { get; }
         public BattleField OpponentField { get; }
         public BattleField CurrentField { get; private set; }
-        public CompPlayer TheCompPlayer { get; private set; }  
+        public CompPlayer TheCompPlayer { get; private set; }
+        public Player Player1 { get; init; } = new Player(1, "Anon");
 
 
         public Game(Mode mode = Mode.SinglePlayer)
@@ -91,6 +93,8 @@ namespace SeaBattleApp
                 else {
                     if (CurrentField.ShipsCounter == 0) {
                         WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
+                        ++Player1.DefeatCounter;
+                        Player1.CurrentScoreCounter = 0;
                         isTheWinner = true;
                         return;
                     }
@@ -111,16 +115,17 @@ namespace SeaBattleApp
         private void ComputerThinks()
         {
             Console.WriteLine("\nНе спеши, думаю.");
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Console.Write(".");
-                Thread.Sleep(300);
+                Thread.Sleep(10);
             }
             Console.WriteLine();
         }
 
         public void PlayerMove(ref bool isTheWinner)
         {
+            ++Player1.CurrentScoreCounter;
             string targetCoords = ReadValidPosition();
             bool shipIsDestroyed = false;
             bool isMyMove = true;
@@ -132,6 +137,7 @@ namespace SeaBattleApp
                 else {
                     if (CurrentField.ShipsCounter == 0) {
                         WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                        ++Player1.VictoryCounter;
                         isTheWinner = true;
                         return;
                     }
@@ -200,6 +206,75 @@ namespace SeaBattleApp
             }
             FieldStatusChangedEvent?.Invoke(this);
             return (isSuccess, ship);    
+        }
+
+        public string SavePlayerStatistics()
+        {
+            var currDirectory = $"{DriveInfo.GetDrives()[0].Name}Users\\{Environment.UserName}\\Documents\\";
+            if (!Directory.Exists(currDirectory)) throw new ApplicationException($"Директория {currDirectory} не найдена");
+            return CreateOrUpdateStatistics(currDirectory);
+
+        }
+
+        /// <summary>
+        /// Формат данных следующий: 
+        /// Имя игрока: Иванов
+        /// Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия: 123
+        /// Колличество побед: 100
+        /// Колличество поражений: 100
+        /// </summary>
+        /// <param name="pathToDirectory"></param>
+        /// <returns></returns>
+        public string CreateOrUpdateStatistics(string pathToDirectory)
+        {
+            var targetDir = @"Sea Battle Game\";
+            var targetFile = @$"statistics_{Player1.Username}.txt";
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
+                foreach (var drive in DriveInfo.GetDrives()) {
+                    if (drive.Name == pathToDirectory[0..3]) {
+                        long freeBytes = drive.TotalFreeSpace;
+                        if (freeBytes < 1_000_000) throw new ApplicationException("На диске слишком мало места, чтобы создать файл со статистикой.");
+                        else break;
+                    }
+                }
+            }
+            if (!Directory.Exists($"{pathToDirectory}{targetDir}")) {
+                var dir = Directory.CreateDirectory($"{pathToDirectory}{targetDir}");
+            }
+            string path = $"{pathToDirectory}{targetDir}{targetFile}";
+            if (!File.Exists(path)) {
+                var file = File.Create(path);
+                file.Close();
+                WriteToFile(path, null);
+                return $"Статистика сохранена по пути {path}";
+            }
+            var prevStatisticsList = new List<int>();
+            using (StreamReader reader = new StreamReader(path)) {
+                string? line;
+                while ((line = reader.ReadLine()) != null) {
+                    if (line.Contains("Имя", StringComparison.OrdinalIgnoreCase)) continue;
+                    prevStatisticsList.Add(int.Parse(line.Split(": ")[1]));
+                }
+            }
+            WriteToFile(path, prevStatisticsList);
+            return $"Статистика обновлена по пути {path}";
+        }
+
+        private void WriteToFile(string path, List<int>? prevStats)
+        {
+            (int, int, int) stats = (0, 0, 0);
+            if (prevStats != null) {
+                stats.Item1 = prevStats[0];
+                stats.Item2 = prevStats[1];
+                stats.Item3 = prevStats[2];
+            }
+            using (var writer = new StreamWriter(path)) {
+                var username = $"Имя игрока: {Player1.Username}";
+                var score = $"Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия: {Player1.Score + stats.Item1}";
+                var victories = $"Колличество побед: {Player1.VictoryCounter + stats.Item2}";
+                var defeats = $"Колличество поражений: {Player1.DefeatCounter + stats.Item3}";
+                writer.Write($"{username}\n{score}\n{victories}\n{defeats}\n");
+            }
         }
     }
 }

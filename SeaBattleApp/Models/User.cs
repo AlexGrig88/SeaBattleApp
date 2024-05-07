@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SeaBattleApp.Models
 {
-    internal class User<T>
+    public class User<T>
     {
         public T Id { get; set; }
         public string Username { get; set; }

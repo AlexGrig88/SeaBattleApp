@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SeaBattleApp.Models;
+using static SeaBattleApp.CompPlayer;
 
 namespace SeaBattleApp
 {
@@ -13,33 +14,7 @@ namespace SeaBattleApp
 
         public record Direction(int Row, int Col);
 
-        public class Memory
-        {
-            private int[][] _fourDirection = new int[4][] { new int[] { 0, 1 }, new int[] { 0, -1 }, new int[] { 1, 0 }, new int[] { -1, 0 } };
-            public Direction LastDirection { get; set; } 
-            public List<Direction> UnexploredDirection { get; set; }
-            public IList<string> PositionsInProcess { get; set; }  // Координаты с попаданиями
-
-            public Memory()
-            {
-                PositionsInProcess = new List<string>();
-                Reset();
-            }
-
-            public void Reset()
-            {
-                LastDirection = new Direction(0, 0);
-                UnexploredDirection = new List<Direction>() { 
-                    new Direction(1, 0),
-                    new Direction(-1, 0),
-                    new Direction(0, 1),
-                    new Direction(0, -1)
-                };
-                PositionsInProcess.Clear();
-            }
-        }
-
-        StreamWriter writer = null;
+        StreamWriter? writer = null;
         public Memory TheMemory { get; set; }
         public BattleField Field { get; set; }
         public List<string> AllPositionsForOpponent { get; set; }
@@ -110,9 +85,6 @@ namespace SeaBattleApp
 
         private string GetRandomPosFromFourFreeDirection(string lastShotPosition)   // надо проверить те позиции по которым уже стреляли (проверить список всех позиций и исследованные направления) и выстрелить
         {
-/*            writer = new StreamWriter(@"C:\Users\UserGrig\CSharpProjects\SeaBattleGit\SeaBattleProject\SeaBattleApp\records.txt", true);
-            writer.WriteLine($"{new string('=', 50)}\nЗаход в метод GetRandomPosFromFourFreeDirection:\n {nameof(lastShotPosition)} = {lastShotPosition}");*/
-
             var direction = new Direction(100, 100);
             Coordinate coord = new Coordinate(100, 120);
             try {
@@ -134,15 +106,6 @@ namespace SeaBattleApp
                 writer.Close();*/
             }
             return new Coordinate(coord.Row + TheMemory.LastDirection.Row, coord.Col + TheMemory.LastDirection.Col).GetPosition();
-        }
-
-        private static void WriteDirectionsToFile(StreamWriter writer, List<Direction> dirs)
-        {
-            foreach (var item in dirs)
-            {
-                writer.WriteLine($"dir[0] = {item.Row}; dir[1] = {item.Col}");
-            }
-            writer.WriteLine("+++++++++++++");
         }
 
         private bool IsOutsideTheField(Coordinate coord, Direction direction) => coord.Row + direction.Row > 9 || coord.Col + direction.Col > 9 ||
@@ -171,4 +134,31 @@ namespace SeaBattleApp
             return new Coordinate(coord.Row + TheMemory.LastDirection.Row, coord.Col + TheMemory.LastDirection.Col).GetPosition();
         }
     }
+
+    public class Memory
+    {
+        private int[][] _fourDirection = new int[4][] { new int[] { 0, 1 }, new int[] { 0, -1 }, new int[] { 1, 0 }, new int[] { -1, 0 } };
+        public Direction LastDirection { get; set; }
+        public List<Direction> UnexploredDirection { get; set; }
+        public IList<string> PositionsInProcess { get; set; }  // Координаты с попаданиями
+
+        public Memory()
+        {
+            PositionsInProcess = new List<string>();
+            Reset();
+        }
+
+        public void Reset()
+        {
+            LastDirection = new Direction(0, 0);
+            UnexploredDirection = new List<Direction>() {
+                    new Direction(1, 0),
+                    new Direction(-1, 0),
+                    new Direction(0, 1),
+                    new Direction(0, -1)
+                };
+            PositionsInProcess.Clear();
+        }
+    }
+
 }

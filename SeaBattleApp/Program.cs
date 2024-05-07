@@ -7,15 +7,42 @@ class Program
 {
     static void Main(string[] args)
     {
-        Play();
+        while (PlayNext()) { }
+        Console.WriteLine("\n\t*** Конец игры ***\t\n");
     }
 
-    static void Play()
+    public static bool PlayNext()
     {
+        bool oneMoreTime = true;
+        Console.WriteLine("\nВыберите режим игры:\n1 - Игра с очень умным компьютером\n2 - Игра на двоих\n3 - Выход");
+        var choice = Console.ReadLine();
+        Game.Mode mode = Game.Mode.SinglePlayer;
+        string userName = "";
+ 
+        switch (choice) {
+            case "1":
+                mode = Game.Mode.SinglePlayer;
+                Console.WriteLine("Вы выбрали режим игры с компьютером.\nПредставьтесь пожалуйста: ");
+                userName = Console.ReadLine() ?? "Anon";
+                userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
+                break;
+            case "2":
+                mode = Game.Mode.TwoPlayers;
+                Console.WriteLine("Ещё не готов режим на двоих. Выбирите другой!");
+                return oneMoreTime;
+            case "3":
+                Console.WriteLine("Вы выбрали выход, до свидания!");
+                return !oneMoreTime;
+            default:
+                mode = Game.Mode.TwoPlayers;
+                Console.WriteLine("Такого режима не существует. Выбирите другой!");
+                return oneMoreTime;
+        } 
+        
+        Game game = new Game { ModeGame = mode, Player1 = new Player(1, userName) };
 
-        var game = new Game();
-        var border = new string('*', game.Greeting.Length);
-        Console.WriteLine($"{border}\n{game.Greeting}\n{border}\n");
+        var border = new string('*', game.Greeting.Length + 6);
+        Console.WriteLine($"{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
 
         Console.WriteLine("Вам даны 10 кораблей:");
         char shV = BattleField.MarkIsAShip == 5 ? 'S' : '5';
@@ -23,17 +50,15 @@ class Program
         Console.WriteLine($"3-ри 2-палубных:   {shV}{shV}\t|  {shV}{shV}\t|  {shV}{shV}");
         Console.WriteLine($"2-ва 3-палубных:   {shV}{shV}{shV}\t|  {shV}{shV}{shV}");
         Console.WriteLine($"1-ин 4-палубный:   {shV}{shV}{shV}{shV}");
-        var shipsOutside = game.createShips();
+        Console.WriteLine("И 2 поля.");
         ShowGameBoardVer2(game);
 
-        Console.WriteLine("\nТеперь вы готовы для размещения вашей флотилии.\n");
-
+        var shipsOutside = game.createShips();
+        Console.WriteLine("\nРасположите корабли на вашем поле.\n");
 
         // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
         game.FieldStatusChangedEvent += ShowGameBoardVer2;
         game.WriteMessageForPlayerEvent += Console.WriteLine;
-
-
 
         while (shipsOutside.Count > 0) {
             Console.WriteLine($"Выберите корабль нужной палубности и разместите его на поле указав координату начала и ориентацию.\nВсего осталось {shipsOutside.Count} кораблей.");
@@ -71,7 +96,6 @@ class Program
                 orientation = Console.ReadLine()!.ToLower();
             }
 
-
             targetShip.IsHorizontalOrientation = orientation == "г" ? true : false;
             (bool, string) resultWithMsg = game.TryAddTheShipOnTheField(targetShip, Coordinate.Parse(position));
             if (!resultWithMsg.Item1) {
@@ -81,15 +105,11 @@ class Program
         }
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
-
         ShowGameBoardVer2(game);
-
         Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
 
         bool isTheWinner;
-       
-        while (true) 
-        {
+        while (true) {
             isTheWinner = false;
             game.PlayerMove(ref isTheWinner);
             if (isTheWinner) break;
@@ -98,7 +118,13 @@ class Program
             game.CompMove2(ref isTheWinner);
             if (isTheWinner) break;
         }
-        Console.WriteLine("\n" + border + "Конец игры" + border);
+        Console.WriteLine(game.SavePlayerStatistics());
+        Console.WriteLine("\nХотите сыграть ещё раз (да/любой другой ввод означает нет)? ");
+        var answer = Console.ReadLine();
+        if (answer == "да") return oneMoreTime;
+        else {
+            return false;
+        }
     }
 
     private static void ShowGameBoardVer2(Game game)
