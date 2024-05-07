@@ -94,7 +94,7 @@ namespace SeaBattleApp
                     if (CurrentField.ShipsCounter == 0) {
                         WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
                         ++Player1.DefeatCounter;
-                        Player1.CurrentScoreCounter = 0;
+                        Player1.Score = 0;
                         isTheWinner = true;
                         return;
                     }
@@ -118,14 +118,14 @@ namespace SeaBattleApp
             for (int i = 0; i < 30; i++)
             {
                 Console.Write(".");
-                Thread.Sleep(10);
+                Thread.Sleep(3);
             }
             Console.WriteLine();
         }
 
         public void PlayerMove(ref bool isTheWinner)
         {
-            ++Player1.CurrentScoreCounter;
+            ++Player1.Score;
             string targetCoords = ReadValidPosition();
             bool shipIsDestroyed = false;
             bool isMyMove = true;
@@ -208,14 +208,6 @@ namespace SeaBattleApp
             return (isSuccess, ship);    
         }
 
-        public string SavePlayerStatistics()
-        {
-            var currDirectory = $"{DriveInfo.GetDrives()[0].Name}Users\\{Environment.UserName}\\Documents\\";
-            if (!Directory.Exists(currDirectory)) throw new ApplicationException($"Директория {currDirectory} не найдена");
-            return CreateOrUpdateStatistics(currDirectory);
-
-        }
-
         /// <summary>
         /// Формат данных следующий: 
         /// Имя игрока: Иванов
@@ -225,56 +217,42 @@ namespace SeaBattleApp
         /// </summary>
         /// <param name="pathToDirectory"></param>
         /// <returns></returns>
-        public string CreateOrUpdateStatistics(string pathToDirectory)
+        public string SaveOrUpdatePlayerStatistics()
         {
-            var targetDir = @"Sea Battle Game\";
-            var targetFile = @$"statistics_{Player1.Username}.txt";
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
-                foreach (var drive in DriveInfo.GetDrives()) {
-                    if (drive.Name == pathToDirectory[0..3]) {
-                        long freeBytes = drive.TotalFreeSpace;
-                        if (freeBytes < 1_000_000) throw new ApplicationException("На диске слишком мало места, чтобы создать файл со статистикой.");
-                        else break;
-                    }
-                }
+            var currDirectory = $"{DriveInfo.GetDrives()[0].Name}Users\\{Environment.UserName}\\Documents\\";
+            if (!Directory.Exists(currDirectory)) throw new ApplicationException($"Директория {currDirectory} не найдена");
+            //return CreateOrUpdateStatistics(currDirectory);
+            var fullDir = $"{currDirectory}\\Sea Battle Game\\";
+            if (!Directory.Exists(fullDir)) {
+                Directory.CreateDirectory(fullDir);
             }
-            if (!Directory.Exists($"{pathToDirectory}{targetDir}")) {
-                var dir = Directory.CreateDirectory($"{pathToDirectory}{targetDir}");
-            }
-            string path = $"{pathToDirectory}{targetDir}{targetFile}";
+            var path = $"{fullDir}stat_{Player1.Username}.txt";
             if (!File.Exists(path)) {
                 var file = File.Create(path);
                 file.Close();
-                WriteToFile(path, null);
-                return $"Статистика сохранена по пути {path}";
+                File.WriteAllText(path, GetTextStat(new int[] { 0, 0, 0 }));
+                return "Data saved";
             }
-            var prevStatisticsList = new List<int>();
-            using (StreamReader reader = new StreamReader(path)) {
-                string? line;
-                while ((line = reader.ReadLine()) != null) {
-                    if (line.Contains("Имя", StringComparison.OrdinalIgnoreCase)) continue;
-                    prevStatisticsList.Add(int.Parse(line.Split(": ")[1]));
-                }
+            int[] prevData = new int[3];
+            int i = 0;
+            foreach (var line in File.ReadAllLines(path))
+            {
+                if (line.Contains("Имя")) continue;
+                prevData[i++] = int.Parse(line.Split(": ")[1]);
             }
-            WriteToFile(path, prevStatisticsList);
-            return $"Статистика обновлена по пути {path}";
+            File.WriteAllText(path, GetTextStat(prevData));
+            return "Data updated";
         }
 
-        private void WriteToFile(string path, List<int>? prevStats)
+        public string GetTextStat(int[] prevData)
         {
-            (int, int, int) stats = (0, 0, 0);
-            if (prevStats != null) {
-                stats.Item1 = prevStats[0];
-                stats.Item2 = prevStats[1];
-                stats.Item3 = prevStats[2];
-            }
-            using (var writer = new StreamWriter(path)) {
-                var username = $"Имя игрока: {Player1.Username}";
-                var score = $"Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия: {Player1.Score + stats.Item1}";
-                var victories = $"Колличество побед: {Player1.VictoryCounter + stats.Item2}";
-                var defeats = $"Колличество поражений: {Player1.DefeatCounter + stats.Item3}";
-                writer.Write($"{username}\n{score}\n{victories}\n{defeats}\n");
-            }
+            Player1.Score = Player1.Score < prevData[0] ? Player1.Score : prevData[0];
+            var username = $"Имя игрока: {Player1.Username}";
+            var score = $"Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия: {Player1.Score}";
+            var victories = $"Колличество побед: {Player1.VictoryCounter + prevData[1]}";
+            var defeats = $"Колличество поражений: {Player1.DefeatCounter + prevData[2]}";
+            return $"{username}\n{score}\n{victories}\n{defeats}\n";
         }
+
     }
 }

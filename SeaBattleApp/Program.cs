@@ -118,10 +118,15 @@ class Program
             game.CompMove2(ref isTheWinner);
             if (isTheWinner) break;
         }
-        Console.WriteLine(game.SavePlayerStatistics());
+        Console.WriteLine(game.SaveOrUpdatePlayerStatistics());
         Console.WriteLine("\nХотите сыграть ещё раз (да/любой другой ввод означает нет)? ");
         var answer = Console.ReadLine();
-        if (answer == "да") return oneMoreTime;
+        if (answer == "да") {
+            game.Player1.Score = 0;
+            game.Player1.VictoryCounter = 0;
+            game.Player1.DefeatCounter = 0;
+            return oneMoreTime;
+        }
         else {
             return false;
         }
