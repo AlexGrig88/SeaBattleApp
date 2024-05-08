@@ -1,45 +1,89 @@
 ﻿
 using SeaBattleApp.Models;
+using SeaBattleApp.TcpConnecting;
+using System.Text.RegularExpressions;
 
 namespace SeaBattleApp;
 
 class Program
 {
+
     static void Main(string[] args)
     {
+
         while (PlayNext()) { }
         Console.WriteLine("\n\t*** Конец игры ***\t\n");
     }
 
     public static bool PlayNext()
     {
+
+        Game game = new Game();
+
         bool oneMoreTime = true;
-        Console.WriteLine("\nВыберите режим игры:\n1 - Игра с очень умным компьютером\n2 - Игра на двоих\n3 - Выход");
+        Console.WriteLine("\nВыберите режим игры:\n1 - Игра с очень умным компьютером\n2 - Игра на двоих по локальной сети\n3 - Выход");
         var choice = Console.ReadLine();
-        Game.Mode mode = Game.Mode.SinglePlayer;
         string userName = "";
  
         switch (choice) {
             case "1":
-                mode = Game.Mode.SinglePlayer;
+                game.ModeGame = Game.Mode.SinglePlayer;
                 Console.WriteLine("Вы выбрали режим игры с компьютером.\nПредставьтесь пожалуйста: ");
                 userName = Console.ReadLine() ?? "Anon";
                 userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
+                game.Player1.Username = userName;
                 break;
             case "2":
-                mode = Game.Mode.TwoPlayers;
-                Console.WriteLine("Ещё не готов режим на двоих. Выбирите другой!");
-                return oneMoreTime;
+                game.ModeGame = Game.Mode.TwoPlayers;
+                Console.WriteLine("Вы выбрали режим c игроком по локальной сети.\nПредставьтесь пожалуйста: ");
+                userName = Console.ReadLine() ?? "Anon";
+                userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
+                game.Player1.Username = userName;
+            repeat:
+                Console.WriteLine("Определитесь кто из вас будет ходить первым. Нажмите 1 - это Вы, 2 - это Соперник");
+                var choiceRole = Console.ReadLine();
+                if (choiceRole == "1") {
+                    Console.WriteLine("Спросите у вашего 2-го игрока ip-адрес и порт на котором он запустил свой экземпляр приложения.\nОни ему будут видны после выбора режима очередности.");
+                    Console.WriteLine("Если они у него не появились, значит вы выбрали одинаковые значения очередности.\nЕсли всё сработало введите ip и номер порта через пробел.");
+                    Console.WriteLine("Иначе введите любой другой текст и попробуёте ещё раз. Вводите: ");
+                    var choiceAddress = Console.ReadLine()?? " ";
+                    Regex ipPortRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} \d{5}");
+                    if (ipPortRegex.IsMatch(choiceAddress)) {
+                        Console.WriteLine("Отлично, начнём игру!");
+                        var ipPort = choiceAddress.Split(" ");
+                        game.TheClient = new Client(ipPort[0], int.Parse(ipPort[1]));
+                        game.IsClientPlayer = true;
+                    }
+                    else {
+                        Console.WriteLine("Давайте ещё раз.");
+                        goto repeat;
+                    }
+                }
+                else if (choiceRole == "2") {
+                    game.TheServer = new Server();
+                    game.IsClientPlayer = false;
+                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress.ToString()} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
+                    Console.WriteLine("Главное вы должны выбрать разные значения очередности иначе связь не получится.");
+                    Console.WriteLine("Если вы сделали всё правильно, введите слово \"Хорошо\", а иначе любой другой текст.");
+                    var choiceGood = Console.ReadLine()?? " ";
+                    if (choiceGood == "Хорошо") {
+                        Console.WriteLine("Отлично, начнём игру!");
+                    }
+                    else {
+                        Console.WriteLine("Попробуйте ещё раз.");
+                        goto repeat;
+                    }
+                }
+                break;
+
+
             case "3":
                 Console.WriteLine("Вы выбрали выход, до свидания!");
                 return !oneMoreTime;
             default:
-                mode = Game.Mode.TwoPlayers;
                 Console.WriteLine("Такого режима не существует. Выбирите другой!");
                 return oneMoreTime;
         } 
-        
-        Game game = new Game { ModeGame = mode, Player1 = new Player(1, userName) };
 
         var border = new string('*', game.Greeting.Length + 6);
         Console.WriteLine($"{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
@@ -106,6 +150,9 @@ class Program
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
         ShowGameBoardVer2(game);
+
+        game.SynchronizeWithOpponent();
+
         Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
 
         bool isTheWinner;
@@ -176,52 +223,6 @@ class Program
             Console.Write($"{charCol++} ");
         }
     }
-
-/*    static void ShowBattleField(BattleField battleField)
-    {
-        int[,] field = battleField.Field;
-        var charCol = BattleField.FIRST_CHAR_RU;
-        Console.Write("    ");
-        for (int i = 0; i < field.GetLength(1); i++)
-        {
-            var ch = charCol == 'Й' || charCol == 'Ё' ? ++charCol : charCol;
-            Console.Write($"{charCol++} ");
-        }
-        Console.WriteLine("\n   " + new string('-', field.GetLength(1) * 2));
-
-        for (int i = 0; i < field.GetLength(0); ++i) {
-            var indent = (i + 1) < 10 ? " " : ""; 
-            Console.Write($"{i + 1}{indent}| ");
-            for (int j = 0; j < field.GetLength(1); ++j)
-            {
-                char shipImg = '.';
-                if (field[i, j] == BattleField.MarkIsAShip) {
-                    shipImg = 'S';
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else if (field[i, j] == (int)BattleField.CellState.Unexplored) { //|| field[i, j] == BattleField.MarkAShipInvisible) {
-                    shipImg = '*';
-                    Console.ForegroundColor = ConsoleColor.Blue;
-                }
-                else if (field[i, j] == (int)BattleField.CellState.Empty) {
-                    shipImg = '-';
-                    Console.ForegroundColor = ConsoleColor.White;
-                } 
-                else if (field[i, j] == (int)BattleField.CellState.BurningShip) {
-                    shipImg = 'B';
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                else if (field[i, j] == (int)BattleField.CellState.DestroyedShip) {
-                    shipImg = 'X';
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                }
-                Console.Write(shipImg + " ");
-                Console.ForegroundColor = ConsoleColor.Gray;
-            }
-            Console.WriteLine();
-        }
-        Console.WriteLine();
-    }*/
 
     private static char GetImageShip(int[,] field, int i, int j)
     {

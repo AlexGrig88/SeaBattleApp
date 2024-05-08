@@ -2,12 +2,21 @@
 using System;
 using System.Text.RegularExpressions;
 using SeaBattleApp.Models;
+using SeaBattleApp.TcpConnecting;
 using static System.Formats.Asn1.AsnWriter;
+using static SeaBattleApp.Game;
 
 namespace SeaBattleApp
 {
     public class Game
     {
+        
+        // кто сервер а кто клиент определяется в зависимости от очередности хода. Если первый ходишь, то ты клиент
+        public Server TheServer { get; set; } 
+        public Client TheClient { get; set; }
+        public bool IsClientPlayer { get; set; }    // клиент ходит первым
+        public bool IsReadyServerData { get; set; }
+
         public event Action<Game> FieldStatusChangedEvent;
         public event Action<string> WriteMessageForPlayerEvent;
 
@@ -22,7 +31,7 @@ namespace SeaBattleApp
         public BattleField OpponentField { get; }
         public BattleField CurrentField { get; private set; }
         public CompPlayer TheCompPlayer { get; private set; }
-        public Player Player1 { get; init; } = new Player(1, "Anon");
+        public Player Player1 { get; set; } = new Player(1, "Anon");
 
 
         public Game(Mode mode = Mode.SinglePlayer)
@@ -31,14 +40,26 @@ namespace SeaBattleApp
             MyField = new BattleField(true, 10, 10);
             OpponentField = new BattleField(false, 10, 10);
             CurrentField = MyField;
-            if (mode == Mode.SinglePlayer)
-            {
+            TheClient = new Client("", 0);
+            TheServer = new Server();
+        }
+
+        public void SynchronizeWithOpponent()
+        {
+            if (ModeGame == Mode.SinglePlayer) {
                 TheCompPlayer = new CompPlayer(OpponentField);
                 PlaceOpponentShips();
             }
-            else 
-            {
+            else {
+                InitTcpOpponentField();
                 // Тут будет назначаться поле противника, как this.OpponentField = gameOther.MyField
+            }
+        }
+
+        private void InitTcpOpponentField()
+        {
+            if (IsClientPlayer) {
+
             }
         }
 
@@ -126,11 +147,11 @@ namespace SeaBattleApp
 
         public void PlayerMove(ref bool isTheWinner)
         {
-            ++Player1.Score;
             string targetCoords = ReadValidPosition();
             bool shipIsDestroyed = false;
             bool isMyMove = true;
             (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
+            ++Player1.Score;
             while (isSuccess) {
                 if (!shipIsDestroyed) {
                     WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
@@ -148,6 +169,7 @@ namespace SeaBattleApp
                 targetCoords = ReadValidPosition();
                 shipIsDestroyed = false;
                 (isSuccess, ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
+                ++Player1.Score;
             }
             WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
             ComputerThinks();
