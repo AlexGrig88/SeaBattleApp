@@ -100,6 +100,7 @@ namespace SeaBattleApp
                     }
                     Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает.");
                     // надо сбросить память компьютера в начальное состояние
+                    ++TheCompPlayer.ShipLengthOpponentDict[ship?.Length ?? throw new ApplicationException("Ошибка! Проверяй логику!")];  // добавляем в память инфу о палубности потопленного корабля
                     TheCompPlayer.ClearUnsablePositions(ship, false);
                     TheCompPlayer.TheMemory.Reset();
 
@@ -230,7 +231,7 @@ namespace SeaBattleApp
             if (!File.Exists(path)) {
                 var file = File.Create(path);
                 file.Close();
-                File.WriteAllText(path, GetTextStat(new int[] { 0, 0, 0 }));
+                File.WriteAllText(path, GetTextStat(new int[] { 100, 0, 0 })); // изначально очки равны максимуму, как худший результат
                 return "Data saved";
             }
             int[] prevData = new int[3];
@@ -246,7 +247,9 @@ namespace SeaBattleApp
 
         public string GetTextStat(int[] prevData)
         {
-            Player1.Score = Player1.Score < prevData[0] ? Player1.Score : prevData[0];
+            if (Player1.Score != 0) {
+                Player1.Score = Player1.Score < prevData[0] ? Player1.Score : prevData[0];
+            }
             var username = $"Имя игрока: {Player1.Username}";
             var score = $"Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия: {Player1.Score}";
             var victories = $"Колличество побед: {Player1.VictoryCounter + prevData[1]}";

@@ -19,12 +19,15 @@ namespace SeaBattleApp
         public BattleField Field { get; set; }
         public List<string> AllPositionsForOpponent { get; set; }
         public List<string> AllPositionsComp { get; set; }
+        public Dictionary<int, int> ShipLengthOpponentDict { get; set; }    // память на длины уже подбитых кораблей, чтобы анализировать что осталось у игрока и определять плохие позиции для выстрела
+
         public CompPlayer(BattleField field)
         {
             Field = field;
             AllPositionsForOpponent = generateAllPositions(field.Rows, field.Columns);
             AllPositionsComp = generateAllPositions(field.Columns, field.Rows);
             TheMemory = new Memory();
+            ShipLengthOpponentDict = new Dictionary<int, int>() { { 4, 0 }, { 3, 0 }, { 2, 0 }, { 1, 0 } };
         }
 
         private List<string> generateAllPositions(int rows, int cols)
