@@ -1,5 +1,6 @@
 
 using System;
+using System.Text;
 using System.Text.RegularExpressions;
 using SeaBattleApp.Models;
 using SeaBattleApp.TcpConnecting;
@@ -44,23 +45,98 @@ namespace SeaBattleApp
             TheServer = new Server();
         }
 
-        public void SynchronizeWithOpponent()
+        public void InitCompPlayer()
         {
-            if (ModeGame == Mode.SinglePlayer) {
-                TheCompPlayer = new CompPlayer(OpponentField);
-                PlaceOpponentShips();
-            }
-            else {
-                InitTcpOpponentField();
-                // Тут будет назначаться поле противника, как this.OpponentField = gameOther.MyField
-            }
+            TheCompPlayer = new CompPlayer(OpponentField);
+            PlaceOpponentShips();
         }
 
-        private void InitTcpOpponentField()
+        public void SynchronizeWithOpponent()
         {
-            if (IsClientPlayer) {
+
+            if (IsClientPlayer && MyField.ShipsList.Count == 10) {      // проверяем, я первый хожу и что все корабли на поле
+                                                                        //TheClient.Run(GetMyFieldAsString());
+                string myFieldAsStr = GetBattlefieldAsString();
+                if (TheClient.TryConnect()) {
+                    string opponentFieldAsStr = TheClient.SyncFields(myFieldAsStr);
+                }
+                else {
+                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу");
+                    return;
+                }
 
             }
+            // Тут будет назначаться поле противника, как this.OpponentField = gameOther.MyField
+
+        }
+
+        /// <summary>
+        /// Формат строки для передачи: battfield;ChipsCounter;False,False,4,4,99: ... и так до конца списка кораблей
+        /// Расчётная фиксированная максимальная длина буфера данных 100 + 2 + (5 + 5 + 4) * 10 + 14(запас точкам в конце). Итого maxLen = 256 байт
+        /// </summary>
+        /// <returns></returns>
+        private string GetBattlefieldAsString()
+        {
+            int[,] field = MyField.Field;
+            var sb = new StringBuilder();
+            for (int i = 0; i < field.GetLength(0); i++) {
+                for (int j = 0; j < field.GetLength(1); j++) {
+                    sb.Append(field[i, j]);
+                }
+            }
+            sb.Append(';');
+            string chipsCounterAsStr = MyField.ShipsCounter < 10 ? "0" + MyField.ShipsCounter : MyField.ShipsCounter.ToString();
+            sb.Append(chipsCounterAsStr).Append(';');
+            var sbList = new StringBuilder();
+            foreach (var ship in MyField.ShipsList)
+            {
+                sbList.Append(ship.ToSimpleString()).Append(':');
+            }
+            sb.Append(sbList.ToString().TrimEnd(':'));
+            // Надо продебажить, определить максимальную длину возможной строки и добавлять каждый раз нехватающей длины справа точками PadRight()
+            // А на приёме тримить их
+            return sb.ToString();
+        }
+
+        private string GetMyFieldAsString()
+        {
+            Console.WriteLine("Before");
+            for (int i = 0; i < MyField.Field.GetLength(0); i++) {
+                for (int j = 0; j < MyField.Field.GetLength(1); j++) {
+                    Console.Write(MyField.Field[i, j] + " ");
+                }
+                Console.WriteLine();
+            }
+
+            var sb = new StringBuilder();
+            for (int i = 0; i < MyField.Field.GetLength(0); i++) {
+                for (int j = 0; j < MyField.Field.GetLength(1); j++)
+                {
+                    sb.Append(MyField.Field[i, j]);
+                }
+            }
+            var gettingField = sb.ToString();
+
+            Console.WriteLine("result string = " + gettingField);
+
+            int[,] testArr = new int[10, 10];
+            int lenVertical = MyField.Field.GetLength(0);
+            int lenHorizont = MyField.Field.GetLength(1);
+            string cell = "";
+            for (int i = 0; i < lenVertical; i++) {
+                for (int j = 0; j < lenHorizont; j++) {
+                    cell = new string(gettingField[i * lenHorizont + j], 1);
+                    testArr[i, j] = int.Parse(cell);
+                }
+            }
+            Console.WriteLine("After");
+            for (int i = 0; i < MyField.Field.GetLength(0); i++) {
+                for (int j = 0; j < MyField.Field.GetLength(1); j++) {
+                    Console.Write(testArr[i, j] + " ");
+                }
+                Console.WriteLine();
+            }
+            return "";
         }
 
         public void PlaceOpponentShips()

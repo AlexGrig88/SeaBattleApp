@@ -32,6 +32,7 @@ class Program
                 userName = Console.ReadLine() ?? "Anon";
                 userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 game.Player1.Username = userName;
+                Console.WriteLine("\nОтлично, начнём игру!");
                 break;
             case "2":
                 game.ModeGame = Game.Mode.TwoPlayers;
@@ -49,7 +50,7 @@ class Program
                     var choiceAddress = Console.ReadLine()?? " ";
                     Regex ipPortRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} \d{5}");
                     if (ipPortRegex.IsMatch(choiceAddress)) {
-                        Console.WriteLine("Отлично, начнём игру!");
+                        Console.WriteLine("\nОтлично, начнём игру!");
                         var ipPort = choiceAddress.Split(" ");
                         game.TheClient = new Client(ipPort[0], int.Parse(ipPort[1]));
                         game.IsClientPlayer = true;
@@ -67,15 +68,19 @@ class Program
                     Console.WriteLine("Если вы сделали всё правильно, введите слово \"Хорошо\", а иначе любой другой текст.");
                     var choiceGood = Console.ReadLine()?? " ";
                     if (choiceGood == "Хорошо") {
-                        Console.WriteLine("Отлично, начнём игру!");
+                        Console.WriteLine("\nОтлично, начнём игру!");
                     }
                     else {
                         Console.WriteLine("Попробуйте ещё раз.");
                         goto repeat;
                     }
                 }
-                break;
 
+                else {
+                    Console.WriteLine("Пожалуйста, следуйте инструкциям. Попробуем сначала.");
+                    return oneMoreTime;
+                }
+                break;
 
             case "3":
                 Console.WriteLine("Вы выбрали выход, до свидания!");
@@ -151,7 +156,14 @@ class Program
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
         ShowGameBoardVer2(game);
 
-        game.SynchronizeWithOpponent();
+        if (game.ModeGame == Game.Mode.TwoPlayers) {
+            game.SynchronizeWithOpponent();
+        }
+        else {
+            Console.WriteLine("Ждём соперника, когда он расставит свои корабли.");
+            game.InitCompPlayer();
+            Console.WriteLine("\nСоперник готов к сражению!\n");
+        }
 
         Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
 

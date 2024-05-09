@@ -99,5 +99,12 @@ namespace SeaBattleApp.Models
         }
 
         public override int GetHashCode() => HashCode.Combine(Length, BeginCoord.Col, BeginCoord.Row);
+
+        public string ToSimpleString()
+        {
+            string? result = IsHorizontalOrientation.ToString() + "," + IsDestroyed.ToString() + "," +
+                CounterRemainingParts + "," + Length + "," + BeginCoord.ToSimpleString();
+            return result;
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace SeaBattleApp.Models
         public const int MarkIsAShip = 5;             //  метка видимого корабля
         public static int MarkAShipInvisible => 6;      // метка невидимого корабля                                     
 
-        private bool _isItMyField;
+        private bool _isItMyField;      // для выбора невидимого или видимого отображения корабля
         private int _rows;
         private int _columns;
 

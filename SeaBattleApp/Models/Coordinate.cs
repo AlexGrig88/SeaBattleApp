@@ -37,5 +37,7 @@ namespace SeaBattleApp.Models
             char col = (BattleField.FIRST_CHAR_RU + Col) >= 'Й' ? (char)(BattleField.FIRST_CHAR_RU + Col + 1) : (char)(BattleField.FIRST_CHAR_RU + Col);
             return row + col;
         }
+
+        public string ToSimpleString() => "" + Row + Col;
     }
 }
