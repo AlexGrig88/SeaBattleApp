@@ -88,7 +88,12 @@ class Program
             default:
                 Console.WriteLine("Такого режима не существует. Выбирите другой!");
                 return oneMoreTime;
-        } 
+        }
+
+
+        // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
+        game.FieldStatusChangedEvent += ShowGameBoardVer2;
+        game.WriteMessageForPlayerEvent += Console.WriteLine;
 
         var border = new string('*', game.Greeting.Length + 6);
         Console.WriteLine($"\n{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
@@ -118,9 +123,6 @@ class Program
         var shipsOutside = game.createShips();
         Console.WriteLine("\nРасположите корабли на вашем поле.\n");
 
-        // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
-        game.FieldStatusChangedEvent += ShowGameBoardVer2;
-        game.WriteMessageForPlayerEvent += Console.WriteLine;
 
         while (shipsOutside.Count > 0) {
             Console.WriteLine($"Выберите корабль нужной палубности и разместите его на поле указав координату начала и ориентацию.\nВсего осталось {shipsOutside.Count} кораблей.");
