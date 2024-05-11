@@ -31,7 +31,7 @@ namespace SeaBattleApp.Models
             set => _beginCoord = value;
         }
 
-        public Ship(int length, bool isHorizontalOrientation = true)
+        public Ship(int length, bool isHorizontalOrientation = false)
         {
             Length = length;
             IsHorizontalOrientation = isHorizontalOrientation;
@@ -100,11 +100,21 @@ namespace SeaBattleApp.Models
 
         public override int GetHashCode() => HashCode.Combine(Length, BeginCoord.Col, BeginCoord.Row);
 
-        public string ToSimpleString()
-        {
-            string? result = IsHorizontalOrientation.ToString() + "," + IsDestroyed.ToString() + "," +
+        public string ToSimpleString() => IsHorizontalOrientation.ToString() + "," + IsDestroyed.ToString() + "," +
                 CounterRemainingParts + "," + Length + "," + BeginCoord.ToSimpleString();
-            return result;
+ 
+        public static Ship FromSimpleString(string shipsAsStr)
+        {
+            string[] res = shipsAsStr.Split(',');
+            bool isHorizontalOrientation = Convert.ToBoolean(res[0]);
+            bool isDestroyed = Convert.ToBoolean(res[1]);
+            int counterRemainingParts = Convert.ToInt32(res[2]);
+            int length = Convert.ToInt32(res[3]);
+            Coordinate beginCoord = new Coordinate(Convert.ToInt32(res[4][..1]), Convert.ToInt32(res[4][1..]));
+            var ship = new Ship(beginCoord, length, isHorizontalOrientation);
+            ship.IsDestroyed = isDestroyed;
+            ship.CounterRemainingParts = counterRemainingParts;
+            return ship;
         }
     }
 }

@@ -14,6 +14,8 @@ namespace SeaBattleApp.TcpConnecting
         Regex _ipV4Regex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
         public int ThePort { get; set; }
         public IPAddress TheIpAdress { get; set; }
+        private TcpListener _tcpListener;
+        private NetworkStream _stream;
 
         public Server()
         {
@@ -21,58 +23,51 @@ namespace SeaBattleApp.TcpConnecting
             TheIpAdress = ip; ThePort = port;
         }
 
-        public void Run()
+        public bool TryStart()
         {
-            var tcpListener = new TcpListener(TheIpAdress, ThePort);
-            var words = new Dictionary<string, string>()
-            {
-                {"red", "красный" },
-                {"blue", "синий" },
-                {"green", "зеленый" }
-            };
+            _tcpListener = new TcpListener(TheIpAdress, ThePort);
             try {
-                tcpListener.Start();    // запускаем сервер
-                Console.WriteLine("Сервер запущен. Ожидание подключений... ");
+                _tcpListener.Start();
+                // получаем подключение в виде TcpClient
+                var tcpClient = _tcpListener.AcceptTcpClient();
+                // получаем объект NetworkStream для взаимодействия с клиентом
+                _stream = tcpClient.GetStream();
+                return true;
+            }
+            catch (Exception) {
+                _tcpListener.Stop();
+                return false;
+            }
+        }
 
-                while (true) {
-                    // получаем подключение в виде TcpClient
-                    using var tcpClient = tcpListener.AcceptTcpClient();
-                    // получаем объект NetworkStream для взаимодействия с клиентом
-                    var stream = tcpClient.GetStream();
-                    // буфер для входящих данных
-                    var response = new List<byte>();
-                    int bytesRead = 10;
-                    while (true) {
-                        // считываем данные до конечного символа
-                        while ((bytesRead = stream.ReadByte()) != '\n') {
-                            // добавляем в буфер
-                            response.Add((byte)bytesRead);
-                        }
-                        var word = Encoding.UTF8.GetString(response.ToArray());
-
-                        // если прислан маркер окончания взаимодействия,
-                        // выходим из цикла и завершаем взаимодействие с клиентом
-                        if (word == "END") break;
-
-                        Console.WriteLine($"Запрошен перевод слова {word}");
-                        // находим слово в словаре и отправляем обратно клиенту
-                        if (!words.TryGetValue(word, out var translation)) translation = "не найдено в словаре";
-                        // добавляем символ окончания сообщения 
-                        translation += '\n';
-                        // отправляем перевод слова из словаря
-                        stream.Write(Encoding.UTF8.GetBytes(translation));
-                        response.Clear();
-                    }
-                    break;
-                }
-
+        public string RunExchange(string battlefieldAsStr, Action<string> action)
+        {
+            try {
+                    
+                byte[] bufferInputData = new byte[Client.BUFFER_SIZE];    // максимальная длина буфера 300 
+                action?.Invoke("Ждём когда соперник расставит корабли...");
+                // считываем данные
+                int resBytes = _stream.Read(bufferInputData);
+                var opponentBattlefieldStr = Encoding.ASCII.GetString(bufferInputData).Trim('.'); // очищаем неинформационные данные
+                        
+                battlefieldAsStr = opponentBattlefieldStr.PadRight(Client.BUFFER_SIZE, '.');
+                _stream.Write(Encoding.ASCII.GetBytes(battlefieldAsStr));
+                return opponentBattlefieldStr;
             }
             catch (Exception ex) {
-                Console.WriteLine("Что-то пошло не так");
+                action?.Invoke("Что-то пошло не так. Сервер остановлен.");
+                _tcpListener.Stop();
+                throw;
             }
-            finally {
-                Console.WriteLine("Server stoped");
-                tcpListener.Stop();
+        }
+
+        public void Stop()
+        {
+            try {
+                _tcpListener.Stop();
+            }
+            catch (Exception ex){
+                throw;
             }
         }
 

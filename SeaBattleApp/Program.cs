@@ -91,7 +91,18 @@ class Program
         } 
 
         var border = new string('*', game.Greeting.Length + 6);
-        Console.WriteLine($"{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
+        Console.WriteLine($"\n{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
+
+        if (game.ModeGame == Game.Mode.TwoPlayers) {
+            if (!game.TrySynchronizeWithOpponent2()) {
+                return oneMoreTime;     // запустить игру сначала
+            }
+        }
+        else {
+            Console.WriteLine("Ждём соперника, когда он расставит свои корабли.");
+            game.InitCompPlayer();
+            Console.WriteLine("\nСоперник готов к сражению!\n");
+        }
 
         Console.WriteLine("Вам даны 10 кораблей:");
         char shV = BattleField.MarkIsAShip == 5 ? 'S' : '5';
@@ -133,7 +144,7 @@ class Program
             Console.Write("Вводите координату (сначала номер строки, потом букву столбца, без пробелов): ");
             string position = game.ReadValidPosition();
 
-            string orientation = "г";
+            string orientation = "в";
             if (len != 1)  // для однопалубных не спрашиваем ориентацию
             {
                 Console.WriteLine("Введите ориентацию корабля (в - вертикальная, г - горизонтальная): ");
@@ -156,14 +167,6 @@ class Program
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
         ShowGameBoardVer2(game);
 
-        if (game.ModeGame == Game.Mode.TwoPlayers) {
-            game.SynchronizeWithOpponent();
-        }
-        else {
-            Console.WriteLine("Ждём соперника, когда он расставит свои корабли.");
-            game.InitCompPlayer();
-            Console.WriteLine("\nСоперник готов к сражению!\n");
-        }
 
         Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
 

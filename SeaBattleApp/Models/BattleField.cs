@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace SeaBattleApp.Models
 {
 
@@ -21,7 +23,7 @@ namespace SeaBattleApp.Models
         private int _columns;
 
         public List<Ship> ShipsList { get; set; }
-        public int[,] Field { get; private set; }
+        public int[,] Field { get; set; }
         public int Rows
         {
             get => _rows;
@@ -57,6 +59,54 @@ namespace SeaBattleApp.Models
             Columns = columns;
             Field = new int[Rows, Columns];
             ShipsList = new List<Ship>();
+        }
+
+        /// <summary>
+        /// Формат строки для передачи: battfield;ChipsCounter;False,False,4,4,99: ... и так до конца списка кораблей
+        /// максимальная длина буфера данных 100 + 2 + (5 + 5 + 4) * 10 + 51 разделителя = 293(проверить через дебаг) + 7 точек в конце, чтобы наверняка, итого 300
+        /// При этом сервер ответит длиной как минимум меньшей, поэтому у полученных данных сервером надо взять длину, отнять длину серверного ответа и разность прибавить точками к серверному ответу
+        /// </summary>
+        /// <returns></returns>
+        public string GetBattlefieldAsString()
+        {
+            StringBuilder sb = new StringBuilder(FieldToString());
+            sb.Append(';');
+            string chipsCounterAsStr = ShipsCounter < 10 ? "0" + ShipsCounter : ShipsCounter.ToString();
+            sb.Append(chipsCounterAsStr).Append(';');
+            var sbList = new StringBuilder();
+            foreach (var ship in ShipsList) {
+                sbList.Append(ship.ToSimpleString()).Append(':');
+            }
+            sb.Append(sbList.ToString().TrimEnd(':'));
+            // Надо продебажить, определить максимальную длину возможной строки и добавлять каждый раз нехватающей длины справа точками PadRight()
+            // А на приёме тримить их
+            return sb.ToString();
+        }
+
+        public string FieldToString()
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < Field.GetLength(0); i++) {
+                for (int j = 0; j < Field.GetLength(1); j++) {
+                    sb.Append(Field[i, j]);
+                }
+            }
+            return sb.ToString();
+        }
+
+        public int[,] StringToField(string fieldStr)
+        {
+            int[,] restoredField = new int[10, 10];
+            int lenVertical = Field.GetLength(0);
+            int lenHorizont = Field.GetLength(1);
+            string cell = "";
+            for (int i = 0; i < lenVertical; i++) {
+                for (int j = 0; j < lenHorizont; j++) {
+                    cell = new string(fieldStr[i * lenHorizont + j], 1);
+                    restoredField[i, j] = int.Parse(cell);
+                }
+            }
+            return restoredField;
         }
 
         public bool TryAddTheShip(Ship ship, Coordinate beginCoord, out string errorMassage)

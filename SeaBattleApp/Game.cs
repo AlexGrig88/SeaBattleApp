@@ -51,54 +51,94 @@ namespace SeaBattleApp
             PlaceOpponentShips();
         }
 
-        public void SynchronizeWithOpponent()
+        public bool TrySynchronizeWithOpponent2()
         {
-
-            if (IsClientPlayer && MyField.ShipsList.Count == 10) {      // проверяем, я первый хожу и что все корабли на поле
-                                                                        //TheClient.Run(GetMyFieldAsString());
-                string myFieldAsStr = GetBattlefieldAsString();
+            if (IsClientPlayer) {      // проверяем, я первый хожу и что все корабли на поле
+                WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с серевером... ");
+                for (int i = 0; i < 10; i++) {
+                    Thread.Sleep(1000);
+                    Console.Write('.');
+                }
                 if (TheClient.TryConnect()) {
-                    string opponentFieldAsStr = TheClient.SyncFields(myFieldAsStr);
+                    WriteMessageForPlayerEvent?.Invoke("\nСоединение произошло... ");
+                    return true;
                 }
                 else {
-                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу");
-                    return;
+                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Попробуйте сначала!");
+                    return false;
                 }
-
             }
-            // Тут будет назначаться поле противника, как this.OpponentField = gameOther.MyField
-
+            else {
+                WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с клиентом... ");
+                for (int i = 0; i < 10; ++i) {
+                    Thread.Sleep(1000);
+                    Console.Write('.');
+                }
+                if (TheServer.TryStart()) {
+                    WriteMessageForPlayerEvent?.Invoke("\nПодключение состоялось... ");
+                    return true;
+                }
+                else {
+                    WriteMessageForPlayerEvent?.Invoke("Не удалось запустить сервер и принять соединение от клиента. Попробуйте сначала");
+                    return false;
+                }
+            }
         }
 
-        /// <summary>
-        /// Формат строки для передачи: battfield;ChipsCounter;False,False,4,4,99: ... и так до конца списка кораблей
-        /// Расчётная фиксированная максимальная длина буфера данных 100 + 2 + (5 + 5 + 4) * 10 + 14(запас точкам в конце). Итого maxLen = 256 байт
-        /// </summary>
-        /// <returns></returns>
-        private string GetBattlefieldAsString()
+        public void ExecuteSettingOpponentBattlefield()
         {
-            int[,] field = MyField.Field;
-            var sb = new StringBuilder();
-            for (int i = 0; i < field.GetLength(0); i++) {
-                for (int j = 0; j < field.GetLength(1); j++) {
-                    sb.Append(field[i, j]);
-                }
+            if (IsClientPlayer) {
+                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
+                string opponentFieldAsStr = TheClient.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                InitOpponentBattlefield(opponentFieldAsStr);
             }
-            sb.Append(';');
-            string chipsCounterAsStr = MyField.ShipsCounter < 10 ? "0" + MyField.ShipsCounter : MyField.ShipsCounter.ToString();
-            sb.Append(chipsCounterAsStr).Append(';');
-            var sbList = new StringBuilder();
-            foreach (var ship in MyField.ShipsList)
-            {
-                sbList.Append(ship.ToSimpleString()).Append(':');
+            else {
+                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
+                string opponentFieldAsStr = TheServer.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                InitOpponentBattlefield(opponentFieldAsStr);
             }
-            sb.Append(sbList.ToString().TrimEnd(':'));
-            // Надо продебажить, определить максимальную длину возможной строки и добавлять каждый раз нехватающей длины справа точками PadRight()
-            // А на приёме тримить их
-            return sb.ToString();
         }
 
-        private string GetMyFieldAsString()
+/*        public bool TrySynchronizeWithOpponent()
+        {
+            if (IsClientPlayer && MyField.ShipsList.Count == 10) {      // проверяем, я первый хожу и что все корабли на поле
+                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
+                if (TheClient.TryConnect()) {
+                    string opponentFieldAsStr = TheClient.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                    InitOpponentBattlefield(opponentFieldAsStr);
+                    return true;
+                }
+                else {
+                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Попробуйте сначала!");
+                    return false;
+                }
+            }
+            else {
+                if (TheServer.TryStart()) {
+                    string myBattlefielAsStr = MyField.GetBattlefieldAsString();
+                    string opponentFieldAsStr = TheServer.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                    InitOpponentBattlefield(opponentFieldAsStr);
+                    return true;
+                }
+                else {
+                    WriteMessageForPlayerEvent?.Invoke("Не удалось запустить сервер и принять соединение от клиента. Попробуйте сначала");
+                    return false;
+                }
+
+            }   
+        }*/
+
+        private void InitOpponentBattlefield(string opponentFieldAsStr)
+        {
+            string[] arr = opponentFieldAsStr.Split(';');
+            OpponentField.Field = OpponentField.StringToField(arr[0]);  // Формат строки для передачи: battfield;ChipsCounter;False,False,4,4,99: ... и так до конца списка кораблей
+            OpponentField.ShipsCounter = int.Parse(arr[1]);
+            foreach (var shipStr in arr[2].Split(':')) {
+                OpponentField.ShipsList.Add(Ship.FromSimpleString(shipStr));
+            }
+        }
+
+ /*       private string GetMyFieldAsString()
         {
             Console.WriteLine("Before");
             for (int i = 0; i < MyField.Field.GetLength(0); i++) {
@@ -137,7 +177,7 @@ namespace SeaBattleApp
                 Console.WriteLine();
             }
             return "";
-        }
+        }*/
 
         public void PlaceOpponentShips()
         {

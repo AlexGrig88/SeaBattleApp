@@ -1,6 +1,7 @@
 ﻿using SeaBattleApp.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -13,9 +14,11 @@ namespace SeaBattleApp.TcpConnecting
 {
     public class Client
     {
+        public const int BUFFER_SIZE = 300;
         public int ThePort { get; set; }
         public string TheIpAdress { get; set; }
         private TcpClient _tcpClient;
+        private NetworkStream _stream;
 
         public Client(string ip, int port)
         {
@@ -28,31 +31,34 @@ namespace SeaBattleApp.TcpConnecting
             try {
                 _tcpClient = new TcpClient();
                 _tcpClient.Connect(TheIpAdress, ThePort);
+                _stream = _tcpClient.GetStream();
                 return true;
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 return false;
             }
         }
 
         /// <summary>
-        /// Отправляет моё поле + счётчик не потопленных кораблей, в виде строки на сервер 2-го игрока для инициализации OpponentField.Field и OpponentField.ShipsCounter
+        /// Отправляет моё поле + счётчик не потопленных кораблей, в виде строки на сервер 2-го игрока для инициализации OpponentField.Field, OpponentField.ShipsCounter, OpponentField.ShipsList
         /// </summary>
         /// <param name="myField"></param>
-        public string SyncFields(string myFieldAsStr)
+        public string RunExchange(string myFieldAsStr, Action<string> action)
         {
             try {
-                NetworkStream stream = _tcpClient.GetStream();
+                //NetworkStream stream = _tcpClient.GetStream();
                 // буфер для входящих данных
-                byte[] opponentFieldResponse = new byte[myFieldAsStr.Length];
+                myFieldAsStr = myFieldAsStr.PadRight(BUFFER_SIZE, '.');
+                byte[] bufferResponse = new byte[BUFFER_SIZE];
 
-                stream.Write(Encoding.UTF8.GetBytes(myFieldAsStr));     //отправляем наши данные (поле в строку + 2 числа в конце - это ShipsCounter, чтобы определить победителя (от 01 до 10))
-                stream.Read(opponentFieldResponse);
-                return Encoding.UTF8.GetString(opponentFieldResponse);
+                _stream.Write(Encoding.ASCII.GetBytes(myFieldAsStr));     //отправляем наши данные (поле в строку + 2 числа в конце - это ShipsCounter, чтобы определить победителя (от 01 до 10))
+                action?.Invoke("Ждём когда соперник расставит корабли...");
+                _stream.Read(bufferResponse);
+                return Encoding.ASCII.GetString(bufferResponse).Trim('.');
             }
             catch (Exception ex) {
-                Console.WriteLine("Что-то пошло не так! Соединение разорвано.");
-                Console.WriteLine(ex.Message);
+                action?.Invoke("Что-то пошло не так! Соединение разорвано.");
+                action?.Invoke(ex.Message);
                 _tcpClient.Close();
                 throw;
             }
