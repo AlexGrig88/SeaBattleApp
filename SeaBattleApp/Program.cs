@@ -95,6 +95,8 @@ class Program
 
         if (game.ModeGame == Game.Mode.TwoPlayers) {
             if (!game.TrySynchronizeWithOpponent2()) {
+                Console.WriteLine("Всё хорошо. Остановка.");
+                Console.ReadLine();
                 return oneMoreTime;     // запустить игру сначала
             }
         }
