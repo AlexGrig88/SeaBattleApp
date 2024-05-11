@@ -169,8 +169,10 @@ class Program
         }
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
-        ShowGameBoardVer2(game);
+        game.ExecuteSettingOpponentBattlefield();
 
+        ShowGameBoardVer2(game);
+        Console.ReadLine();
 
         Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
 

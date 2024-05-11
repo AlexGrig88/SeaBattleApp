@@ -60,7 +60,7 @@ namespace SeaBattleApp
                     Console.Write('.');
                 }
                 if (TheClient.TryConnect()) {
-                    WriteMessageForPlayerEvent?.Invoke("\nСоединение произошло... ");
+                    WriteMessageForPlayerEvent?.Invoke("\nСОЕДИНЕНИЕ ПРОИЗОШЛО.\n ");
                     return true;
                 }
                 else {
@@ -75,7 +75,7 @@ namespace SeaBattleApp
                     Console.Write('.');
                 }
                 if (TheServer.TryStart()) {
-                    WriteMessageForPlayerEvent?.Invoke("\nПодключение состоялось... ");
+                    WriteMessageForPlayerEvent?.Invoke("\nПОДКЛЮЧЕНИЕ СОСТОЯЛОСЬ.\n");
                     return true;
                 }
                 else {
