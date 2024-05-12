@@ -7,25 +7,25 @@ namespace SeaBattleApp;
 
 class Program
 {
+/*    private static Game game = new Game();*/
+    // Добавить события
 
     static void Main(string[] args)
     {
-        Game game = new Game();
+        // Добавить события
+/*        game.FieldStatusChangedEvent += ShowGameBoardVer2;
+        game.WriteMessageForPlayerEvent += Console.WriteLine;*/
+        
 
-        while (PlayNext(game)) { }
-
-        if (game.TheClient.IsConnected) {
-            game.TheClient.Disconect();
-        }
-        if (game.TheServer.IsStarted) {
-            game.TheServer.Stop();
-        }
+        while (PlayNext()) { }
         Console.WriteLine("\n\t*** Конец игры ***\t\n");
     }
 
-    public static bool PlayNext(Game game)
+    public static bool PlayNext()
     {
-
+        var game = new Game();
+        game.FieldStatusChangedEvent += ShowGameBoardVer2;
+        game.WriteMessageForPlayerEvent += Console.WriteLine;
         bool oneMoreTime = true;
         Console.WriteLine("\nВыберите режим игры:\n1 - Игра с очень умным компьютером\n2 - Игра на двоих по локальной сети\n3 - Выход");
         var choice = Console.ReadLine();
@@ -95,10 +95,6 @@ class Program
                 return oneMoreTime;
         }
 
-
-        // Добавить событие на добавления корабля в поле(отрисовка моего поля с кораблями)
-        game.FieldStatusChangedEvent += ShowGameBoardVer2;
-        game.WriteMessageForPlayerEvent += Console.WriteLine;
 
         var border = new string('*', game.Greeting.Length + 6);
         Console.WriteLine($"\n{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
@@ -213,12 +209,18 @@ class Program
         Console.WriteLine("\nХотите сыграть ещё раз (да/любой другой ввод означает нет)? ");
         var answer = Console.ReadLine();
         if (answer == "да") {
-            game.Player1.Score = 0;
-            game.Player1.VictoryCounter = 0;
-            game.Player1.DefeatCounter = 0;
+            // game.ResetGameStatus();  Ну не работает!!??????
             return oneMoreTime;
         }
         else {
+            if (game?.TheClient.IsConnected ?? false) {
+                game.TheClient.Disconect();
+            }
+            if (game?.TheServer.IsStarted ?? false) {
+                game.TheServer.Stop();
+            }
+            game.FieldStatusChangedEvent -= ShowGameBoardVer2;
+            game.WriteMessageForPlayerEvent -= Console.WriteLine;
             return false;
         }
     }

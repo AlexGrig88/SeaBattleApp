@@ -31,11 +31,11 @@ namespace SeaBattleApp
         public Mode ModeGame { get; set; }
 
         public string Greeting => "Добро пожаловать на игру \"Морской бой!\"";
-        public BattleField MyField { get; }
-        public BattleField OpponentField { get; }
+        public BattleField MyField { get; private set; }
+        public BattleField OpponentField { get; private set; }
         public BattleField CurrentField { get; private set; }
         public CompPlayer TheCompPlayer { get; private set; }
-        public Player Player1 { get; set; } = new Player(1, "Anon");
+        public Player Player1 { get; set; }
 
 
         public Game(Mode mode = Mode.SinglePlayer)
@@ -44,8 +44,18 @@ namespace SeaBattleApp
             MyField = new BattleField(true, 10, 10);
             OpponentField = new BattleField(false, 10, 10);
             CurrentField = MyField;
+            Player1 = new Player(1, "Anon");
             TheClient = new Client("", 0);
             TheServer = new Server();
+        }
+
+        // не отрабатывает корректно, почему???
+        public void ResetGameStatus()
+        {
+            OpponentField = new BattleField(false, 10, 10);
+            MyField = new BattleField(false, 10, 10);
+            CurrentField = MyField;
+            Player1 = new Player(1, "Annon");
         }
 
         public void InitCompPlayer()
@@ -212,19 +222,12 @@ namespace SeaBattleApp
                     WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                 }
                 else {
-                    if (CurrentField.ShipsCounter == 0) {   
-                        if (isMyMove && IsClientPlayer) {
-                            WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
-                        }
-                        else if (isMyMove & !IsClientPlayer) {
-                            WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                    if (CurrentField.ShipsCounter == 0) {
+                        if (ModeGame == Mode.TwoPlayers) {
+                            HandleGameOverTwoPlayers(isMyMove);
                         }
                         else {
-                            WriteMessageForPlayerEvent?.Invoke("Увы, но вы проиграли.");
-                        }
-                        if (!IsClientPlayer) {      //  т.к. после уничтожения флотилии обмен прекращается, необходимо серверу прочитать ответ и вернуть, чтобы получить законченное состояние
-                            TheServer.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
-                            TheClient.WritePositionToSecondPlayer("go", WriteMessageForPlayerEvent);    // go - это значит Game Over
+                            WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
                         }
                         ++Player1.VictoryCounter;
                         isTheWinner = true;
@@ -244,6 +247,23 @@ namespace SeaBattleApp
                 ++Player1.Score;
             }
             IsClientPlayer = !IsClientPlayer; 
+        }
+
+        public void HandleGameOverTwoPlayers(bool isMyMove)
+        {
+            if (isMyMove && IsClientPlayer) {
+                WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+            }
+            else if (isMyMove & !IsClientPlayer) {
+                WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+            }
+            else {
+                WriteMessageForPlayerEvent?.Invoke("Увы, но вы проиграли.");
+            }
+            if (!IsClientPlayer) {      //  т.к. после уничтожения флотилии обмен прекращается, необходимо серверу прочитать ответ и вернуть, чтобы получить законченное состояние
+                TheServer.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
+                TheClient.WritePositionToSecondPlayer("go", WriteMessageForPlayerEvent);    // go - это значит Game Over
+            }
         }
 
         public string RunExchagePositionsForTwoPlayers(bool isMyMove)
@@ -361,8 +381,11 @@ namespace SeaBattleApp
             if (Player1.Score != 0) {
                 Player1.Score = Player1.Score < prevData[0] ? Player1.Score : prevData[0];
             }
+            else {
+                Player1.Score = prevData[0];
+            }
             var username = $"Имя игрока: {Player1.Username}";
-            var score = $"Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия: {Player1.Score}";
+            var score = $"Наименьшее колличество выстрелов, за которое была унижтожена вражеская флотилия (100 - значит, ещё без побед): {Player1.Score}";
             var victories = $"Колличество побед: {Player1.VictoryCounter + prevData[1]}";
             var defeats = $"Колличество поражений: {Player1.DefeatCounter + prevData[2]}";
             return $"{username}\n{score}\n{victories}\n{defeats}\n";
