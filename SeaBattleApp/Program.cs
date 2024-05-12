@@ -10,15 +10,16 @@ class Program
 
     static void Main(string[] args)
     {
+        Game game = new Game();
+        while (PlayNext(game)) { }
 
-        while (PlayNext()) { }
+        game.TheClient.Disconect();
+        game.TheServer.Stop();
         Console.WriteLine("\n\t*** Конец игры ***\t\n");
     }
 
-    public static bool PlayNext()
+    public static bool PlayNext(Game game)
     {
-
-        Game game = new Game();
 
         bool oneMoreTime = true;
         Console.WriteLine("\nВыберите режим игры:\n1 - Игра с очень умным компьютером\n2 - Игра на двоих по локальной сети\n3 - Выход");
@@ -63,7 +64,7 @@ class Program
                 else if (choiceRole == "2") {
                     game.TheServer = new Server();
                     game.IsClientPlayer = false;
-                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress.ToString()} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
+                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
                     Console.WriteLine("Главное вы должны выбрать разные значения очередности иначе связь не получится.");
                     Console.WriteLine("Если вы сделали всё правильно, введите слово \"Хорошо\", а иначе любой другой текст.");
                     var choiceGood = Console.ReadLine()?? " ";
@@ -75,7 +76,6 @@ class Program
                         goto repeat;
                     }
                 }
-
                 else {
                     Console.WriteLine("Пожалуйста, следуйте инструкциям. Попробуем сначала.");
                     return oneMoreTime;
@@ -99,8 +99,8 @@ class Program
         Console.WriteLine($"\n{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
 
         if (game.ModeGame == Game.Mode.TwoPlayers) {
-            if (!game.TrySynchronizeWithOpponent2()) {
-                Console.WriteLine("Всё хорошо. Остановка.");
+            if (!game.TrySynchronizeWithSecondPlayer()) {
+                Console.WriteLine("Всё хорошо. Остановка. Нажмите любую клавишу...");
                 Console.ReadLine();
                 return oneMoreTime;     // запустить игру сначала
             }
@@ -169,23 +169,41 @@ class Program
         }
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
-        game.ExecuteSettingOpponentBattlefield();
-
-        ShowGameBoardVer2(game);
-        Console.ReadLine();
-
-        Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
-
-        bool isTheWinner;
-        while (true) {
-            isTheWinner = false;
-            game.PlayerMove(ref isTheWinner);
-            if (isTheWinner) break;
-
-            isTheWinner = false;
-            game.CompMove2(ref isTheWinner);
-            if (isTheWinner) break;
+        if (game.ModeGame == Game.Mode.TwoPlayers) {
+            game.ExecuteSettingOpponentBattlefield();
+            ShowGameBoardVer2(game);
+            bool isItMyMove = false;
+            if (game.IsClientPlayer) {
+                Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
+                isItMyMove = true;
+            }
+            else {
+                Console.WriteLine("Стреляет противник");
+                isItMyMove = false;
+            }
+            bool isTheWinner;
+            while (true) {
+                isTheWinner = false;
+                game.PlayerMove(ref isTheWinner, isItMyMove);
+                isItMyMove = !isItMyMove;
+                if (isTheWinner) break;
+            }
         }
+        else {
+            ShowGameBoardVer2(game);
+            Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
+            bool isTheWinner;
+            while (true) {
+                isTheWinner = false;
+                game.PlayerMove(ref isTheWinner, true);
+                if (isTheWinner) break;
+
+                isTheWinner = false;
+                game.CompMove2(ref isTheWinner);
+                if (isTheWinner) break;
+            }
+        }
+
         Console.WriteLine(game.SaveOrUpdatePlayerStatistics());
         Console.WriteLine("\nХотите сыграть ещё раз (да/любой другой ввод означает нет)? ");
         var answer = Console.ReadLine();

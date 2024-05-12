@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using SeaBattleApp.Models;
 
 namespace SeaBattleApp.TcpConnecting
 {
@@ -19,8 +20,8 @@ namespace SeaBattleApp.TcpConnecting
 
         public Server()
         {
-            (IPAddress ip, int port) = GetIpAdressAndPort();
-            TheIpAdress = ip; ThePort = port;
+            TheIpAdress = GetIpAdressAndPort();
+            ThePort = new Random().Next(50000, 65000);
         }
 
         public bool TryStart()
@@ -40,26 +41,56 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
-        public string RunExchange(string battlefieldAsStr, Action<string> action)
+        public string RunExchange(string myBattlefieldAsStr, Action<string> action)
         {
             try {
                     
-                byte[] bufferInputData = new byte[Client.BUFFER_SIZE];    // максимальная длина буфера 300 
-                action?.Invoke("Ждём когда соперник расставит корабли...");
+                byte[] bufferInputData = new byte[Client.BUFFER_SIZE_INIT_FIELD];    // максимальная длина буфера 300 
+                action?.Invoke("Ждём, когда соперник расставит корабли...");
                 // считываем данные
                 int resBytes = _stream.Read(bufferInputData);
                 var opponentBattlefieldStr = Encoding.ASCII.GetString(bufferInputData).Trim('.'); // очищаем неинформационные данные
-                        
-                battlefieldAsStr = opponentBattlefieldStr.PadRight(Client.BUFFER_SIZE, '.');
-                _stream.Write(Encoding.ASCII.GetBytes(battlefieldAsStr));
+
+                myBattlefieldAsStr = myBattlefieldAsStr.PadRight(Client.BUFFER_SIZE_INIT_FIELD, '.');
+                _stream.Write(Encoding.ASCII.GetBytes(myBattlefieldAsStr));
+
                 return opponentBattlefieldStr;
             }
             catch (Exception ex) {
-                action?.Invoke("Что-то пошло не так. Сервер остановлен.");
+                action?.Invoke("Что-то пошло не так. Соединение прервалось.");
                 _tcpListener.Stop();
                 throw;
             }
         }
+
+        public string ReadPositionFromSecondPlayer(Action<string> action)
+        {
+            try {
+                byte[] bufferInputData = new byte[Client.BUFFER_SIZE_SHOT];
+                action?.Invoke("\nЖдём, когда соперник сделает ход...\n");
+                int resBytes = _stream.Read(bufferInputData);
+                string coordAsStr = Encoding.ASCII.GetString(bufferInputData);
+                return new Coordinate(int.Parse(coordAsStr[..1]), int.Parse(coordAsStr[1..])).GetPosition();
+            }
+            catch (Exception ex) {
+                action?.Invoke("Что-то пошло не так. Соединение прервалось.");
+                _tcpListener.Stop();
+                throw;
+            }
+        }
+
+        public void WritePositionToSecondPlayer(string coordStr, Action<string> action)
+        {
+            try {
+                _stream.Write(Encoding.ASCII.GetBytes(coordStr));
+            }
+            catch (Exception ex) {
+                action?.Invoke("Что-то пошло не так. Соединение прервалось.");
+                _tcpListener.Stop();
+                throw;
+            }
+        }
+
 
         public void Stop()
         {
@@ -71,7 +102,7 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
-        public (IPAddress, int) GetIpAdressAndPort()
+        public IPAddress GetIpAdressAndPort()
         {
             IPAddress ipV4 = IPAddress.Parse("255.255.255.255");
             IPAddress[] addresses = Dns.GetHostAddresses(Dns.GetHostName());
@@ -81,8 +112,7 @@ namespace SeaBattleApp.TcpConnecting
                     break;
                 }
             }
-            int port = new Random().Next(50000, 65000);
-            return (ipV4, port);
+            return ipV4;
         }
     }
 }

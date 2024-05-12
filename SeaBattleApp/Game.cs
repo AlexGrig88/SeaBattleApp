@@ -11,7 +11,10 @@ namespace SeaBattleApp
 {
     public class Game
     {
-        
+
+        public const string HIT_FLAG = "Yes";
+        public const string MISSED_FLAG = "Nop";
+        public const string GAME_OVER = "Gor";
         // кто сервер а кто клиент определяется в зависимости от очередности хода. Если первый ходишь, то ты клиент
         public Server TheServer { get; set; } 
         public Client TheClient { get; set; }
@@ -51,7 +54,7 @@ namespace SeaBattleApp
             PlaceOpponentShips();
         }
 
-        public bool TrySynchronizeWithOpponent2()
+        public bool TrySynchronizeWithSecondPlayer()
         {
             if (IsClientPlayer) {      // проверяем, я первый хожу и что все корабли на поле
                 WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с серевером... ");
@@ -64,16 +67,12 @@ namespace SeaBattleApp
                     return true;
                 }
                 else {
-                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Попробуйте сначала!");
+                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Проверте правильность введёных ip и порта. Попробуйте сначала!");
                     return false;
                 }
             }
             else {
                 WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с клиентом... ");
-                for (int i = 0; i < 10; ++i) {
-                    Thread.Sleep(1000);
-                    Console.Write('.');
-                }
                 if (TheServer.TryStart()) {
                     WriteMessageForPlayerEvent?.Invoke("\nПОДКЛЮЧЕНИЕ СОСТОЯЛОСЬ.\n");
                     return true;
@@ -99,34 +98,6 @@ namespace SeaBattleApp
             }
         }
 
-/*        public bool TrySynchronizeWithOpponent()
-        {
-            if (IsClientPlayer && MyField.ShipsList.Count == 10) {      // проверяем, я первый хожу и что все корабли на поле
-                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-                if (TheClient.TryConnect()) {
-                    string opponentFieldAsStr = TheClient.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
-                    InitOpponentBattlefield(opponentFieldAsStr);
-                    return true;
-                }
-                else {
-                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Попробуйте сначала!");
-                    return false;
-                }
-            }
-            else {
-                if (TheServer.TryStart()) {
-                    string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-                    string opponentFieldAsStr = TheServer.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
-                    InitOpponentBattlefield(opponentFieldAsStr);
-                    return true;
-                }
-                else {
-                    WriteMessageForPlayerEvent?.Invoke("Не удалось запустить сервер и принять соединение от клиента. Попробуйте сначала");
-                    return false;
-                }
-
-            }   
-        }*/
 
         private void InitOpponentBattlefield(string opponentFieldAsStr)
         {
@@ -137,47 +108,6 @@ namespace SeaBattleApp
                 OpponentField.ShipsList.Add(Ship.FromSimpleString(shipStr));
             }
         }
-
- /*       private string GetMyFieldAsString()
-        {
-            Console.WriteLine("Before");
-            for (int i = 0; i < MyField.Field.GetLength(0); i++) {
-                for (int j = 0; j < MyField.Field.GetLength(1); j++) {
-                    Console.Write(MyField.Field[i, j] + " ");
-                }
-                Console.WriteLine();
-            }
-
-            var sb = new StringBuilder();
-            for (int i = 0; i < MyField.Field.GetLength(0); i++) {
-                for (int j = 0; j < MyField.Field.GetLength(1); j++)
-                {
-                    sb.Append(MyField.Field[i, j]);
-                }
-            }
-            var gettingField = sb.ToString();
-
-            Console.WriteLine("result string = " + gettingField);
-
-            int[,] testArr = new int[10, 10];
-            int lenVertical = MyField.Field.GetLength(0);
-            int lenHorizont = MyField.Field.GetLength(1);
-            string cell = "";
-            for (int i = 0; i < lenVertical; i++) {
-                for (int j = 0; j < lenHorizont; j++) {
-                    cell = new string(gettingField[i * lenHorizont + j], 1);
-                    testArr[i, j] = int.Parse(cell);
-                }
-            }
-            Console.WriteLine("After");
-            for (int i = 0; i < MyField.Field.GetLength(0); i++) {
-                for (int j = 0; j < MyField.Field.GetLength(1); j++) {
-                    Console.Write(testArr[i, j] + " ");
-                }
-                Console.WriteLine();
-            }
-            return "";
-        }*/
 
         public void PlaceOpponentShips()
         {
@@ -204,6 +134,8 @@ namespace SeaBattleApp
 
         public void CompMove2(ref bool isTheWinner)
         {
+            WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
+            ComputerThinks();
             var isFirstShotInLoop = true;
             do {
                 string selectedPosition = "";
@@ -261,20 +193,39 @@ namespace SeaBattleApp
             Console.WriteLine();
         }
 
-        public void PlayerMove(ref bool isTheWinner)
+        // Когда всё заработает переделать на do while
+        public void PlayerMove(ref bool isTheWinner, bool isMyMove)
         {
-            string targetCoords = ReadValidPosition();
+            string targetPosition;
+            if (ModeGame == Mode.TwoPlayers) {
+                targetPosition = RunExchagePositionsForTwoPlayers(isMyMove);
+            }
+            else {
+                targetPosition = ReadValidPosition();
+            }
+
             bool shipIsDestroyed = false;
-            bool isMyMove = true;
-            (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
+            (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
             ++Player1.Score;
             while (isSuccess) {
                 if (!shipIsDestroyed) {
                     WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                 }
                 else {
-                    if (CurrentField.ShipsCounter == 0) {
-                        WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                    if (CurrentField.ShipsCounter == 0) {   
+                        if (isMyMove && IsClientPlayer) {
+                            WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                        }
+                        else if (isMyMove & !IsClientPlayer) {
+                            WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                        }
+                        else {
+                            WriteMessageForPlayerEvent?.Invoke("Увы, но вы проиграли.");
+                        }
+                        if (!IsClientPlayer) {      //  т.к. после уничтожения флотилии обмен прекращается, необходимо серверу прочитать ответ и вернуть, чтобы получить законченное состояние
+                            TheServer.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
+                            TheClient.WritePositionToSecondPlayer("go", WriteMessageForPlayerEvent);    // go - это значит Game Over
+                        }
                         ++Player1.VictoryCounter;
                         isTheWinner = true;
                         return;
@@ -282,13 +233,37 @@ namespace SeaBattleApp
                     WriteMessageForPlayerEvent?.Invoke("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
                    
                 }
-                targetCoords = ReadValidPosition();
+                if (ModeGame == Mode.TwoPlayers) {
+                    targetPosition = RunExchagePositionsForTwoPlayers(isMyMove);
+                }
+                else {
+                    targetPosition = ReadValidPosition();
+                }
                 shipIsDestroyed = false;
-                (isSuccess, ship) = TryShootAtTheTarget(Coordinate.Parse(targetCoords), isMyMove, ref shipIsDestroyed);
+                (isSuccess, ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
                 ++Player1.Score;
             }
-            WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
-            ComputerThinks();
+            IsClientPlayer = !IsClientPlayer; 
+        }
+
+        public string RunExchagePositionsForTwoPlayers(bool isMyMove)
+        {
+            string targetPosition = "";
+            if (isMyMove && IsClientPlayer) {
+                targetPosition = ReadValidPosition();
+                TheClient.WritePositionToSecondPlayer(targetPosition, WriteMessageForPlayerEvent);
+            }
+            else if (!isMyMove && IsClientPlayer) {
+                targetPosition = TheClient.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
+            }
+            else if (isMyMove && !IsClientPlayer) {
+                targetPosition = ReadValidPosition();
+                TheServer.WritePositionToSecondPlayer(targetPosition, WriteMessageForPlayerEvent);
+            }
+            else {
+                targetPosition = TheServer.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
+            }
+            return targetPosition;
         }
 
         public string ReadValidPosition()
@@ -320,8 +295,6 @@ namespace SeaBattleApp
         }
 
         public bool IsValidRuCoordinate(string coords) => regexValidPosition.IsMatch(coords.ToUpper());
-
-
 
 
         public Ship ChooseTheShip(List<Ship> ships, int length)
