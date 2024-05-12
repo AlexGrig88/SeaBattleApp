@@ -21,8 +21,13 @@ namespace SeaBattleApp.TcpConnecting
         public string TheIpAdress { get; set; }
         private TcpClient _tcpClient;
         private NetworkStream _stream;
+        public bool IsConnected
+        {
+            get => _tcpClient?.Connected ?? false;
+        }
+    
 
-        public Client(string ip, int port)
+    public Client(string ip, int port)
         {
             TheIpAdress = ip;
             ThePort = port;

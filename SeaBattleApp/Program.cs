@@ -11,10 +11,15 @@ class Program
     static void Main(string[] args)
     {
         Game game = new Game();
+
         while (PlayNext(game)) { }
 
-        game.TheClient.Disconect();
-        game.TheServer.Stop();
+        if (game.TheClient.IsConnected) {
+            game.TheClient.Disconect();
+        }
+        if (game.TheServer.IsStarted) {
+            game.TheServer.Stop();
+        }
         Console.WriteLine("\n\t*** Конец игры ***\t\n");
     }
 

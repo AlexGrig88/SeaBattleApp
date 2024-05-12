@@ -17,11 +17,13 @@ namespace SeaBattleApp.TcpConnecting
         public IPAddress TheIpAdress { get; set; }
         private TcpListener _tcpListener;
         private NetworkStream _stream;
+        public bool IsStarted { get; set; }
 
         public Server()
         {
             TheIpAdress = GetIpAdressAndPort();
             ThePort = new Random().Next(50000, 65000);
+            IsStarted = false;
         }
 
         public bool TryStart()
@@ -29,6 +31,7 @@ namespace SeaBattleApp.TcpConnecting
             _tcpListener = new TcpListener(TheIpAdress, ThePort);
             try {
                 _tcpListener.Start();
+                IsStarted = true;
                 // получаем подключение в виде TcpClient
                 var tcpClient = _tcpListener.AcceptTcpClient();
                 // получаем объект NetworkStream для взаимодействия с клиентом
@@ -37,6 +40,7 @@ namespace SeaBattleApp.TcpConnecting
             }
             catch (Exception) {
                 _tcpListener.Stop();
+                IsStarted = false;
                 return false;
             }
         }
@@ -59,6 +63,7 @@ namespace SeaBattleApp.TcpConnecting
             catch (Exception ex) {
                 action?.Invoke("Что-то пошло не так. Соединение прервалось.");
                 _tcpListener.Stop();
+                IsStarted=false;
                 throw;
             }
         }
@@ -75,6 +80,7 @@ namespace SeaBattleApp.TcpConnecting
             catch (Exception ex) {
                 action?.Invoke("Что-то пошло не так. Соединение прервалось.");
                 _tcpListener.Stop();
+                IsStarted = false;
                 throw;
             }
         }
@@ -87,6 +93,7 @@ namespace SeaBattleApp.TcpConnecting
             catch (Exception ex) {
                 action?.Invoke("Что-то пошло не так. Соединение прервалось.");
                 _tcpListener.Stop();
+                IsStarted = false;
                 throw;
             }
         }
