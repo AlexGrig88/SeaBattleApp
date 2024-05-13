@@ -11,7 +11,6 @@ namespace SeaBattleApp
 {
     public class Game
     {
-
         public const string HIT_FLAG = "Hit";
         public const string MISSED_FLAG = "Mis";
         public const string ACK_FLAG = "Ack";   // подтверждение полученного сообщения, не требует обработки на другой стороне
@@ -53,10 +52,16 @@ namespace SeaBattleApp
         // не отрабатывает корректно, почему???
         public void ResetGameStatus()
         {
+            MyField = new BattleField(true, 10, 10);
             OpponentField = new BattleField(false, 10, 10);
-            MyField = new BattleField(false, 10, 10);
             CurrentField = MyField;
-            Player1 = new Player(1, "Annon");
+            Player1 = new Player(1, Player1.Username);
+            if (TheClient.IsConnected) {
+                TheClient.Disconect();
+            }
+            if (TheServer.IsStarted) {
+                TheServer.Stop();
+            }
         }
 
         public void InitCompPlayer()
@@ -64,25 +69,6 @@ namespace SeaBattleApp
             TheCompPlayer = new CompPlayer(OpponentField);
             PlaceOpponentShips();
         }
-
-/*        public bool TrySynchronizeWithSecondPlayer()
-        {
-            
-            WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с серевером... ");
-            for (int i = 0; i < 10; i++) {
-                Thread.Sleep(1000);
-                Console.Write('.');
-            }
-            if (TheClient.TryConnect()) {
-                WriteMessageForPlayerEvent?.Invoke("\nСОЕДИНЕНИЕ ПРОИЗОШЛО.\n ");
-                return true;
-            }
-            else {
-                WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Проверте правильность введёных ip и порта. Попробуйте сначала!");
-                return false;
-            }
-            
-        }*/
 
         public void ExecuteSettingOpponentBattlefield()
         {

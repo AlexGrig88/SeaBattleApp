@@ -7,15 +7,13 @@ namespace SeaBattleApp;
 
 class Program
 {
-/*    private static Game game = new Game();*/
-    // Добавить события
+    private static Game game = new Game();
 
     static void Main(string[] args)
     {
         // Добавить события
-/*        game.FieldStatusChangedEvent += ShowGameBoardVer2;
-        game.WriteMessageForPlayerEvent += Console.WriteLine;*/
-        
+        game.FieldStatusChangedEvent += ShowGameBoardVer2;
+        game.WriteMessageForPlayerEvent += Console.WriteLine;
 
         while (PlayNext()) { }
         Console.WriteLine("\n\t*** Конец игры ***\t\n");
@@ -23,9 +21,9 @@ class Program
 
     public static bool PlayNext()
     {
-        var game = new Game();
+/*        var game = new Game();
         game.FieldStatusChangedEvent += ShowGameBoardVer2;
-        game.WriteMessageForPlayerEvent += Console.WriteLine;
+        game.WriteMessageForPlayerEvent += Console.WriteLine;*/
         bool oneMoreTime = true;
         Console.WriteLine("\nВыберите режим игры:\n1 - Игра с очень умным компьютером\n2 - Игра на двоих по локальной сети\n3 - Выход");
         var choice = Console.ReadLine();
@@ -34,18 +32,17 @@ class Program
         switch (choice) {
             case "1":
                 game.ModeGame = Game.Mode.SinglePlayer;
-                Console.WriteLine("Вы выбрали режим игры с компьютером.\nПредставьтесь пожалуйста: ");
+                Console.WriteLine($"Вы выбрали режим игры с компьютером.\nЗдравствуйте игрок {game.Player1.Username}. ");
+                Console.WriteLine("Если это ваш никнейм, нажмите Enter или введите свой никнейм: ");
                 userName = Console.ReadLine() ?? "Anon";
-                userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
-                game.Player1.Username = userName;
+                game.Player1.Username = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 Console.WriteLine("\nОтлично, начнём игру!");
                 break;
             case "2":
                 game.ModeGame = Game.Mode.TwoPlayers;
                 Console.WriteLine("Вы выбрали режим c игроком по локальной сети.\nПредставьтесь пожалуйста: ");
                 userName = Console.ReadLine() ?? "Anon";
-                userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
-                game.Player1.Username = userName;
+                game.Player1.Username = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                
             repeat:
                 Console.WriteLine("Определитесь кто из вас будет ходить первым. 1 - Вы, 2 - Соперник: ");
@@ -98,14 +95,7 @@ class Program
         var border = new string('*', game.Greeting.Length + 6);
         Console.WriteLine($"\n{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
 
-        if (game.ModeGame == Game.Mode.TwoPlayers) {
-/*            if (!game.TrySynchronizeWithSecondPlayer()) {
-                Console.WriteLine("Всё хорошо. Остановка. Нажмите любую клавишу...");
-                Console.ReadLine();
-                return oneMoreTime;     // запустить игру сначала
-            }*/
-        }
-        else {
+        if (game.ModeGame == Game.Mode.SinglePlayer) {
             Console.WriteLine("Ждём соперника, когда он расставит свои корабли.");
             game.InitCompPlayer();
             Console.WriteLine("\nСоперник готов к сражению!\n");
@@ -169,6 +159,8 @@ class Program
         }
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
+
+
         if (game.ModeGame == Game.Mode.TwoPlayers) {
             Console.WriteLine("Нажмите Enter и подождите, когда соперник подтвердит установку его поля вашим.");
             Console.ReadLine();
@@ -214,7 +206,7 @@ class Program
         Console.WriteLine("\nХотите сыграть ещё раз (да/любой другой ввод означает нет)? ");
         var answer = Console.ReadLine();
         if (answer == "да") {
-            // game.ResetGameStatus();  Ну не работает!!??????
+            game.ResetGameStatus(); 
             return oneMoreTime;
         }
         else {
