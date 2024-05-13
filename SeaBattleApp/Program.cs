@@ -41,15 +41,18 @@ class Program
                 Console.WriteLine("\nОтлично, начнём игру!");
                 break;
             case "2":
+                Task.Run(() =>
+                {
+                    if (!game.TheServer.IsStarted) {
+                        var started = game.TheServer.TryStart();
+                    }
+                });
                 game.ModeGame = Game.Mode.TwoPlayers;
                 Console.WriteLine("Вы выбрали режим c игроком по локальной сети.\nПредставьтесь пожалуйста: ");
                 userName = Console.ReadLine() ?? "Anon";
                 userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 game.Player1.Username = userName;
-                Task.Run(() =>
-                {
-                    var started = game.TheServer.TryStart();
-                });
+               
             repeat:
                 Console.WriteLine("Определитесь кто из вас будет ходить первым. 1 - Вы, 2 - Соперник: ");
                 var choiceRole = Console.ReadLine();
