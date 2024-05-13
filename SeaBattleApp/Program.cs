@@ -53,7 +53,7 @@ class Program
                 if (choiceRole == "1") {
                     game.IsClientPlayer = true;
                     if (TryGetInitClient(game)) {
-                        Console.WriteLine("Ждём, когда утсановится соединение!!!!!!!!!!!!!!!!!!!!!!");
+                        Console.WriteLine("Ждём, когда 2-ой игрок введёт данные!!!!!!!!!!!!!!!!!!!!!!");
                         if (game.TheServer.TryStart()) {
                             Console.WriteLine("Принят сигнал!!!!!!!!!!!!!!!!!!!!!!");
                         }
@@ -66,6 +66,10 @@ class Program
                 }
                 else if (choiceRole == "2") {
                     game.IsClientPlayer = false;
+                    Console.WriteLine("Ждём, когда 2-ой игрок введёт данные!!!!!!!!!!!!!!!!!!!!!!");
+                    if (game.TheServer.TryStart()) {
+                        Console.WriteLine("Принят сигнал!!!!!!!!!!!!!!!!!!!!!!");
+                    }
                     if (TryGetInitClient(game)) {
                         Console.WriteLine("\nОтлично, начнём игру!");
                     }
