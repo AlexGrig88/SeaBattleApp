@@ -67,8 +67,8 @@ class Program
                 }
                 else if (choiceRole == "2") {
                     game.IsClientPlayer = false;
-                    Console.WriteLine("Ждём, когда 2-ой игрок введёт данные!!!!!!!!!!!!!!!!!!!!!!");
                     Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress}.\nСкажите его 2-му игроку, чтобы установить соединение.");
+                    Console.WriteLine("Ждём, когда 2-ой игрок введёт данные!!!!!!!!!!!!!!!!!!!!!!");
                     if (game.TheServer.TryStart()) {
                         Console.WriteLine("Принят сигнал!!!!!!!!!!!!!!!!!!!!!!");
                     }
@@ -311,7 +311,7 @@ class Program
     private static bool TryGetInitClient(Game game)
     {
        
-        Console.WriteLine("Спросите у 2-го игрока его ip-адрес и порт и введите их через пробел:");
+        Console.WriteLine("Спросите у 2-го игрока его ip-адрес и введите его:");
         var choiceAddress = Console.ReadLine() ?? " ";
         Regex ipRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
         if (ipRegex.IsMatch(choiceAddress)) {
