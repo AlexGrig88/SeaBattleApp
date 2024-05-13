@@ -215,12 +215,12 @@ namespace SeaBattleApp
                 (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
                 ++Player1.Score;
                 if (!isSuccess) {
-                    TheClient.WriteShot((Coordinate.Parse(targetPosition).ToSimpleString() + MISSED_FLAG), WriteMessageForPlayerEvent);
+                    TheClient.WriteShot((Coordinate.Parse(targetPosition).ToSimpleString() + " " + MISSED_FLAG), WriteMessageForPlayerEvent);
                     WriteMessageForPlayerEvent?.Invoke("Вы промахнулись. Ход переходит к соперникку.");
                     break;
                 }
 
-                TheClient.WriteShot((Coordinate.Parse(targetPosition).ToSimpleString() + HIT_FLAG), WriteMessageForPlayerEvent);
+                TheClient.WriteShot((Coordinate.Parse(targetPosition).ToSimpleString() + " " + HIT_FLAG), WriteMessageForPlayerEvent);
                 if (!shipIsDestroyed) {
                     WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                 }
