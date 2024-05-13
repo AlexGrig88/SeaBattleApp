@@ -211,7 +211,7 @@ namespace SeaBattleApp
             do {
                 string targetPosition = ReadValidPosition();
                 bool shipIsDestroyed = false;
-                bool isMyMove = IsClientPlayer? true : false;
+                bool isMyMove = true;
                 (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
                 ++Player1.Score;
                 if (!isSuccess) {
@@ -244,7 +244,7 @@ namespace SeaBattleApp
             do {
                 string targetPosition = TheServer.ReadShot(WriteMessageForPlayerEvent);
                 bool shipIsDestroyed = false;
-                bool isMyMove = !IsClientPlayer ? true : false;
+                bool isMyMove = false;
                 (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
                 ++Player1.Score;
                 if (!isSuccess) {
