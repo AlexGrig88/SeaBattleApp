@@ -41,12 +41,6 @@ class Program
                 Console.WriteLine("\nОтлично, начнём игру!");
                 break;
             case "2":
-                Task.Run(() =>
-                {
-                    if (!game.TheServer.IsStarted) {
-                        var started = game.TheServer.TryStart();
-                    }
-                });
                 game.ModeGame = Game.Mode.TwoPlayers;
                 Console.WriteLine("Вы выбрали режим c игроком по локальной сети.\nПредставьтесь пожалуйста: ");
                 userName = Console.ReadLine() ?? "Anon";
@@ -59,6 +53,10 @@ class Program
                 if (choiceRole == "1") {
                     game.IsClientPlayer = true;
                     if (TryGetInitClient(game)) {
+                        Console.WriteLine("Ждём, когда утсановится соединение!!!!!!!!!!!!!!!!!!!!!!");
+                        if (game.TheServer.TryStart()) {
+                            Console.WriteLine("Принят сигнал!!!!!!!!!!!!!!!!!!!!!!");
+                        }
                         Console.WriteLine("\nОтлично, начнём игру!");
                     } 
                     else {
@@ -166,6 +164,8 @@ class Program
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
         if (game.ModeGame == Game.Mode.TwoPlayers) {
+            Console.WriteLine("Enter press.");
+            Console.ReadLine();
             game.ExecuteSettingOpponentBattlefield();
             ShowGameBoardVer2(game);
             if (game.IsClientPlayer) {
