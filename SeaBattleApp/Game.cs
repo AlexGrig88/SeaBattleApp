@@ -67,32 +67,21 @@ namespace SeaBattleApp
 
         public bool TrySynchronizeWithSecondPlayer()
         {
-            if (IsClientPlayer) {      // проверяем, я первый хожу и что все корабли на поле
-                WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с серевером... ");
-                for (int i = 0; i < 10; i++) {
-                    Thread.Sleep(1000);
-                    Console.Write('.');
-                }
-                if (TheClient.TryConnect()) {
-                    WriteMessageForPlayerEvent?.Invoke("\nСОЕДИНЕНИЕ ПРОИЗОШЛО.\n ");
-                    return true;
-                }
-                else {
-                    WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Проверте правильность введёных ip и порта. Попробуйте сначала!");
-                    return false;
-                }
+            
+            WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с серевером... ");
+            for (int i = 0; i < 10; i++) {
+                Thread.Sleep(1000);
+                Console.Write('.');
+            }
+            if (TheClient.TryConnect()) {
+                WriteMessageForPlayerEvent?.Invoke("\nСОЕДИНЕНИЕ ПРОИЗОШЛО.\n ");
+                return true;
             }
             else {
-                WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с клиентом... ");
-                if (TheServer.TryStart()) {
-                    WriteMessageForPlayerEvent?.Invoke("\nПОДКЛЮЧЕНИЕ СОСТОЯЛОСЬ.\n");
-                    return true;
-                }
-                else {
-                    WriteMessageForPlayerEvent?.Invoke("Не удалось запустить сервер и принять соединение от клиента. Попробуйте сначала");
-                    return false;
-                }
+                WriteMessageForPlayerEvent?.Invoke("Не удалось подключиться к серверу. Проверте правильность введёных ip и порта. Попробуйте сначала!");
+                return false;
             }
+            
         }
 
         public void ExecuteSettingOpponentBattlefield()
