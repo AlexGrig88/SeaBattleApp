@@ -8,11 +8,12 @@
         Title="Sea Battle Game" Height="680" Width="1200" ResizeMode="NoResize">
     <DockPanel Background="LightSteelBlue" LastChildFill="True">
         <Menu DockPanel.Dock="Top" Height="25" VerticalAlignment="Center" FontSize="14">
-            <MenuItem Header="Menu" VerticalAlignment="Center" HorizontalAlignment="Center" >
-                <MenuItem Header="Exit" Click="MenuExit_Close" />
+            <MenuItem Header="Меню" VerticalAlignment="Center" HorizontalAlignment="Center" >
+                <MenuItem Header="Статистика" />
+                <MenuItem Header="Выход" Click="MenuExit_Close" />
             </MenuItem>
-            <MenuItem Header="About">
-                
+            <MenuItem Header="Правила игры" Click="AboutMenu_Click">
+
             </MenuItem>
         </Menu>
         <StatusBar Height="25" DockPanel.Dock="Bottom">
@@ -24,24 +25,27 @@
         </StatusBar>
 
         <StackPanel x:Name="StartingField" Orientation="Vertical" Width="1200">
-            <TextBlock FontSize="22" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0 40 0 60">Добро пожаловать в игру "Морской бой"</TextBlock>
-            <Label HorizontalAlignment="Center" FontSize="18" Margin="10 0 10 0">
+            <StackPanel.Background>
+                <ImageBrush ImageSource="/Views/sea_battle_login.png" Opacity="0.1"/>
+            </StackPanel.Background>
+            <TextBlock FontSize="24" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0 80 0 60">Добро пожаловать в игру "Морской бой"</TextBlock>
+            <Label HorizontalAlignment="Center" FontSize="20" Margin="10 0 10 0">
                 Введите свой никнейм
             </Label>
-            <TextBox HorizontalAlignment="Center" FontSize="18" Margin="0 0 10 0" Width="280">
+            <TextBox HorizontalAlignment="Center" FontSize="20" Margin="0 0 10 0" Width="280">
 
             </TextBox>
-            <Label HorizontalAlignment="Center" FontSize="18" Margin="10 40 10 0">
+            <Label HorizontalAlignment="Center" FontSize="20" Margin="10 40 10 0">
                 Выбирите режим игры
             </Label>
-            <RadioButton FontSize="14" Margin="480 10" GroupName="modeGame" HorizontalAlignment="Left" IsChecked="True">
+            <RadioButton FontSize="16" Margin="500 10" GroupName="modeGame" HorizontalAlignment="Left" IsChecked="True" Cursor="Hand">
                 Игра с компьютером
             </RadioButton>
-            <RadioButton FontSize="14" Margin="480 0" GroupName="modeGame" HorizontalAlignment="Left">
+            <RadioButton FontSize="16" Margin="500 0" GroupName="modeGame" HorizontalAlignment="Left" Cursor="Hand">
                 Игра на двоих
             </RadioButton>
-            <Button Margin="0 80 0 0" Width="100" FontSize="18" Click="ButtonStart_Click" Cursor="Hand">
-                Play
+            <Button Padding="5" Margin="0 80 0 0" Width="100" FontSize="20" Click="ButtonStart_Click" Cursor="Hand">
+                Играть
             </Button>
         </StackPanel>
         <Grid x:Name="PlayingField" Visibility="Collapsed">
