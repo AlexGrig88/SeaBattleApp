@@ -248,6 +248,7 @@ namespace SeaBattleApp
                 (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
                 ++Player1.Score;
                 if (!isSuccess) {
+                    WriteMessageForPlayerEvent?.Invoke("Соперник промахнулся. Делайте ваш ход:");
                     break;
                 }
                 if (!shipIsDestroyed) {
@@ -256,7 +257,8 @@ namespace SeaBattleApp
                 else {
                     if (CurrentField.ShipsCounter == 0) {   
                         WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
-                        ++Player1.VictoryCounter;
+                        ++Player1.DefeatCounter;
+                        Player1.Score = 0;
                         isTheWinner = true;
                         return;
                     }
@@ -265,7 +267,6 @@ namespace SeaBattleApp
 
             } while (true);
 
-            WriteMessageForPlayerEvent?.Invoke("Вы промахнулись. Ход переходит к соперникку.");
             IsClientPlayer = true;
         }
 

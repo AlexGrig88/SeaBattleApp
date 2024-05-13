@@ -81,13 +81,13 @@ namespace SeaBattleApp.TcpConnecting
                 // тут обработаем данные и отправим клиенту ответ
                 string TheFlag = inputCoordStrFlag.Split(' ')[1];
                 if (TheFlag == Game.HIT_FLAG) {
-                    action?.Invoke("Соперник попал. Снова его ход.");
+                    //action?.Invoke("Соперник попал. Снова его ход.");
                     string output = inputCoordStrFlag.Replace(Game.HIT_FLAG, Game.ACK_FLAG);
                     _stream.Write(Encoding.ASCII.GetBytes(output));
                     return Coordinate.FromSimpleString(inputCoordStrFlag.Split(' ')[0]).GetPosition();
                 }
                 else if (TheFlag == Game.MISSED_FLAG) {
-                    action?.Invoke("Соперник промахнулся.");
+                    //action?.Invoke("Соперник промахнулся.");
                     string output = inputCoordStrFlag.Replace(Game.MISSED_FLAG, Game.ACK_FLAG);
                     _stream.Write(Encoding.ASCII.GetBytes(output));
                     return Coordinate.FromSimpleString(inputCoordStrFlag.Split(' ')[0]).GetPosition();

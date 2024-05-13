@@ -87,7 +87,7 @@ namespace SeaBattleApp.TcpConnecting
             try {
                 byte[] bufferResponse = new byte[BUFFER_SIZE_SHOT];
                 _stream.Write(Encoding.ASCII.GetBytes(coordStrWithFlag));
-                action?.Invoke("Ждём когда соперник обработает сделанный выстрел...");
+                //action?.Invoke("Ждём когда соперник обработает сделанный выстрел...");
                 _stream.Read(bufferResponse);
                 return Encoding.ASCII.GetString(bufferResponse)[3..];
             }
