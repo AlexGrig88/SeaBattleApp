@@ -46,6 +46,10 @@ class Program
                 userName = Console.ReadLine() ?? "Anon";
                 userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 game.Player1.Username = userName;
+                if (game.TheServer.TryStart()) {
+                    WriteLineColor("Не удалось запустить сервер. Попробуйте сначала.", ConsoleColor.Red);
+                    return oneMoreTime;
+                };
             repeat:
                 Console.WriteLine("Определитесь кто из вас будет ходить первым. 1 - Вы, 2 - Соперник: ");
                 var choiceRole = Console.ReadLine();
@@ -297,8 +301,7 @@ class Program
     private static bool TryGetInitClient(Game game)
     {
         Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
-        Console.WriteLine("Спросите у 2-го игрока его ip-адрес и порт.\n");
-        Console.WriteLine("Введите ip и номер порта через пробел.");
+        Console.WriteLine("Спросите у 2-го игрока его ip-адрес и порт и введите их через пробел:");
         var choiceAddress = Console.ReadLine() ?? " ";
         Regex ipPortRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} \d{5}");
         if (ipPortRegex.IsMatch(choiceAddress)) {
