@@ -307,7 +307,6 @@ class Program
         if (ipPortRegex.IsMatch(choiceAddress)) {
             var ipAndPort = choiceAddress.Split(" ");
             game.TheClient = new Client(ipAndPort[0], int.Parse(ipAndPort[1]));
-            game.IsClientPlayer = true;
             return game.TheClient.TryConnect();
         }
         else {

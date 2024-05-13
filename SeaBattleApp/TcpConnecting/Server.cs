@@ -22,7 +22,7 @@ namespace SeaBattleApp.TcpConnecting
         public Server()
         {
             TheIpAdress = GetIpAdressAndPort();
-            ThePort = new Random().Next(50000, 65000);
+            ThePort = 51000;
             IsStarted = false;
         }
 
