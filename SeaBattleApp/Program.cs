@@ -47,42 +47,30 @@ class Program
                 userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 game.Player1.Username = userName;
             repeat:
-                Console.WriteLine("Определитесь кто из вас будет ходить первым. Нажмите 1 - это Вы, 2 - это Соперник");
+                Console.WriteLine("Определитесь кто из вас будет ходить первым. 1 - Вы, 2 - Соперник: ");
                 var choiceRole = Console.ReadLine();
                 if (choiceRole == "1") {
-                    Console.WriteLine("Спросите у вашего 2-го игрока ip-адрес и порт на котором он запустил свой экземпляр приложения.\nОни ему будут видны после выбора режима очередности.");
-                    Console.WriteLine("Если они у него не появились, значит вы выбрали одинаковые значения очередности.\nЕсли всё сработало введите ip и номер порта через пробел.");
-                    Console.WriteLine("Иначе введите любой другой текст и попробуёте ещё раз. Вводите: ");
-                    var choiceAddress = Console.ReadLine()?? " ";
-                    Regex ipPortRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} \d{5}");
-                    if (ipPortRegex.IsMatch(choiceAddress)) {
+                    game.IsClientPlayer = true;
+                    if (TryGetInitClient(game)) {
                         Console.WriteLine("\nОтлично, начнём игру!");
-                        var ipPort = choiceAddress.Split(" ");
-                        game.TheClient = new Client(ipPort[0], int.Parse(ipPort[1]));
-                        game.IsClientPlayer = true;
-                    }
+                    } 
                     else {
-                        Console.WriteLine("Давайте ещё раз.");
+                        Console.WriteLine("Соединение не произошло. Попробуйте ещё раз.");
                         goto repeat;
                     }
                 }
                 else if (choiceRole == "2") {
-                    game.TheServer = new Server();
                     game.IsClientPlayer = false;
-                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
-                    Console.WriteLine("Главное вы должны выбрать разные значения очередности иначе связь не получится.");
-                    Console.WriteLine("Если вы сделали всё правильно, введите слово \"Хорошо\", а иначе любой другой текст.");
-                    var choiceGood = Console.ReadLine()?? " ";
-                    if (choiceGood == "Хорошо") {
+                    if (TryGetInitClient(game)) {
                         Console.WriteLine("\nОтлично, начнём игру!");
                     }
                     else {
-                        Console.WriteLine("Попробуйте ещё раз.");
+                        Console.WriteLine("Соединение не произошло. Попробуйте ещё раз.");
                         goto repeat;
                     }
                 }
                 else {
-                    Console.WriteLine("Пожалуйста, следуйте инструкциям. Попробуем сначала.");
+                    Console.WriteLine("Пожалуйста, следуйте инструкциям. Попробуйте сначала.");
                     return oneMoreTime;
                 }
                 break;
@@ -173,21 +161,24 @@ class Program
         if (game.ModeGame == Game.Mode.TwoPlayers) {
             game.ExecuteSettingOpponentBattlefield();
             ShowGameBoardVer2(game);
-            bool isItMyMove = false;
             if (game.IsClientPlayer) {
                 Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
-                isItMyMove = true;
             }
             else {
                 Console.WriteLine("Стреляет противник");
-                isItMyMove = false;
             }
             bool isTheWinner;
             while (true) {
-                isTheWinner = false;
-                game.PlayerMove(ref isTheWinner, isItMyMove);
-                isItMyMove = !isItMyMove;
-                if (isTheWinner) break;
+                if (game.IsClientPlayer) {
+                    isTheWinner = false;
+                    game.PlayerClientMove(ref isTheWinner);
+                    if (isTheWinner) break;
+                }
+                else {
+                    isTheWinner = false;
+                    game.PlayerServerMove(ref isTheWinner);
+                    if (isTheWinner) break;
+                }
             }
         }
         else {
@@ -196,7 +187,7 @@ class Program
             bool isTheWinner;
             while (true) {
                 isTheWinner = false;
-                game.PlayerMove(ref isTheWinner, true);
+                game.PlayerMove(ref isTheWinner);
                 if (isTheWinner) break;
 
                 isTheWinner = false;
@@ -219,8 +210,6 @@ class Program
             if (game?.TheServer.IsStarted ?? false) {
                 game.TheServer.Stop();
             }
-            game.FieldStatusChangedEvent -= ShowGameBoardVer2;
-            game.WriteMessageForPlayerEvent -= Console.WriteLine;
             return false;
         }
     }
@@ -303,6 +292,24 @@ class Program
         Console.ForegroundColor = color;
         Console.WriteLine(s);
         Console.ForegroundColor = prev;
+    }
+
+    private static bool TryGetInitClient(Game game)
+    {
+        Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
+        Console.WriteLine("Спросите у 2-го игрока его ip-адрес и порт.\n");
+        Console.WriteLine("Введите ip и номер порта через пробел.");
+        var choiceAddress = Console.ReadLine() ?? " ";
+        Regex ipPortRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} \d{5}");
+        if (ipPortRegex.IsMatch(choiceAddress)) {
+            var ipAndPort = choiceAddress.Split(" ");
+            game.TheClient = new Client(ipAndPort[0], int.Parse(ipAndPort[1]));
+            game.IsClientPlayer = true;
+            return game.TheClient.TryConnect();
+        }
+        else {
+            return false;
+        }
     }
 
 }

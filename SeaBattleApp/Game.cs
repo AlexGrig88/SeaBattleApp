@@ -12,8 +12,9 @@ namespace SeaBattleApp
     public class Game
     {
 
-        public const string HIT_FLAG = "Yes";
-        public const string MISSED_FLAG = "Nop";
+        public const string HIT_FLAG = "Hit";
+        public const string MISSED_FLAG = "Mis";
+        public const string ACK_FLAG = "Ack";   // подтверждение полученного сообщения, не требует обработки на другой стороне
         public const string GAME_OVER = "Gor";
         // кто сервер а кто клиент определяется в зависимости от очередности хода. Если первый ходишь, то ты клиент
         public Server TheServer { get; set; } 
@@ -98,12 +99,12 @@ namespace SeaBattleApp
         {
             if (IsClientPlayer) {
                 string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-                string opponentFieldAsStr = TheClient.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                string opponentFieldAsStr = TheClient.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
                 InitOpponentBattlefield(opponentFieldAsStr);
             }
             else {
                 string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-                string opponentFieldAsStr = TheServer.RunExchange(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                string opponentFieldAsStr = TheServer.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
                 InitOpponentBattlefield(opponentFieldAsStr);
             }
         }
@@ -144,7 +145,7 @@ namespace SeaBattleApp
 
         public void CompMove2(ref bool isTheWinner)
         {
-            WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
+            //WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
             ComputerThinks();
             var isFirstShotInLoop = true;
             do {
@@ -177,7 +178,7 @@ namespace SeaBattleApp
                         isTheWinner = true;
                         return;
                     }
-                    Console.WriteLine("Плохи дела. Компьютер потопил ваш корабль. Думает.");
+                    WriteMessageForPlayerEvent?.Invoke("Плохи дела. Компьютер потопил ваш корабль. Думает.");
                     // надо сбросить память компьютера в начальное состояние
                     ++TheCompPlayer.ShipLengthOpponentDict[ship?.Length ?? throw new ApplicationException("Ошибка! Проверяй логику!")];  // добавляем в память инфу о палубности потопленного корабля
                     TheCompPlayer.ClearUnsablePositions(ship, false);
@@ -189,7 +190,6 @@ namespace SeaBattleApp
                 isFirstShotInLoop = false;
 
             } while (true);
-
         }
 
         private void ComputerThinks()
@@ -203,87 +203,96 @@ namespace SeaBattleApp
             Console.WriteLine();
         }
 
-        // Когда всё заработает переделать на do while
-        public void PlayerMove(ref bool isTheWinner, bool isMyMove)
+        public void PlayerClientMove(ref bool isTheWinner)
         {
-            string targetPosition;
-            if (ModeGame == Mode.TwoPlayers) {
-                targetPosition = RunExchagePositionsForTwoPlayers(isMyMove);
-            }
-            else {
-                targetPosition = ReadValidPosition();
-            }
+            do {
+                string targetPosition = ReadValidPosition();
+                bool shipIsDestroyed = false;
+                bool isMyMove = true;
+                (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
+                ++Player1.Score;
+                if (!isSuccess) {
+                    TheClient.WriteShot((Coordinate.Parse(targetPosition).ToSimpleString() + MISSED_FLAG), WriteMessageForPlayerEvent);
+                    WriteMessageForPlayerEvent?.Invoke("Вы промахнулись. Ход переходит к соперникку.");
+                    break;
+                }
 
-            bool shipIsDestroyed = false;
-            (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
-            ++Player1.Score;
-            while (isSuccess) {
+                TheClient.WriteShot((Coordinate.Parse(targetPosition).ToSimpleString() + HIT_FLAG), WriteMessageForPlayerEvent);
                 if (!shipIsDestroyed) {
                     WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
                 }
                 else {
-                    if (CurrentField.ShipsCounter == 0) {
-                        if (ModeGame == Mode.TwoPlayers) {
-                            HandleGameOverTwoPlayers(isMyMove);
-                        }
-                        else {
-                            WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
-                        }
+                    if (CurrentField.ShipsCounter == 0) {   
+                        WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
                         ++Player1.VictoryCounter;
                         isTheWinner = true;
                         return;
                     }
                     WriteMessageForPlayerEvent?.Invoke("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
-                   
                 }
-                if (ModeGame == Mode.TwoPlayers) {
-                    targetPosition = RunExchagePositionsForTwoPlayers(isMyMove);
+
+            } while (true);
+
+            IsClientPlayer = false;
+        }
+
+        public void PlayerServerMove(ref bool isTheWinner)
+        {
+            do {
+                string targetPosition = TheServer.ReadShot(WriteMessageForPlayerEvent);
+                bool shipIsDestroyed = false;
+                bool isMyMove = true;
+                (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
+                ++Player1.Score;
+                if (!isSuccess) {
+                    break;
+                }
+                if (!shipIsDestroyed) {
+                    WriteMessageForPlayerEvent?.Invoke("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
                 }
                 else {
-                    targetPosition = ReadValidPosition();
+                    if (CurrentField.ShipsCounter == 0) {   
+                        WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
+                        ++Player1.VictoryCounter;
+                        isTheWinner = true;
+                        return;
+                    }
+                    WriteMessageForPlayerEvent?.Invoke("Плохи дела. Компьютер потопил ваш корабль. Думает.");
                 }
-                shipIsDestroyed = false;
-                (isSuccess, ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
+
+            } while (true);
+
+            WriteMessageForPlayerEvent?.Invoke("Вы промахнулись. Ход переходит к соперникку.");
+            IsClientPlayer = true;
+        }
+
+        public void PlayerMove(ref bool isTheWinner)
+        {
+            do {
+                string targetPosition = ReadValidPosition();
+                bool shipIsDestroyed = false;
+                bool isMyMove = true;
+                (bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(targetPosition), isMyMove, ref shipIsDestroyed);
                 ++Player1.Score;
-            }
-            IsClientPlayer = !IsClientPlayer; 
-        }
+                if (!isSuccess) {
+                    WriteMessageForPlayerEvent?.Invoke("Вы промахнулись. Ход переходит к соперникку.");
+                    break;
+                }
+                if (!shipIsDestroyed) {
+                    WriteMessageForPlayerEvent?.Invoke("Вы молодец, подбили корабль! Стреляйте ещё раз (введите координату)!!!");
+                }
+                else {
+                    if (CurrentField.ShipsCounter == 0) {   // ещё раз проверяем, что кораблей не осталось на поле
+                        WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
+                        ++Player1.VictoryCounter;
+                        isTheWinner = true;
+                        return;
+                    }
+                    WriteMessageForPlayerEvent?.Invoke("УРА!!!!!!!!!!!!\nКорабль уничтожен!!!\nСтреляйте ещё раз (введите координату)!!!");
+                }
 
-        public void HandleGameOverTwoPlayers(bool isMyMove)
-        {
-            if (isMyMove && IsClientPlayer) {
-                WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
-            }
-            else if (isMyMove & !IsClientPlayer) {
-                WriteMessageForPlayerEvent?.Invoke("О ДА!!! ВЫ ЖЕ ПОБЕДИЛИ!!!! КРАСАВЧИК!!!");
-            }
-            else {
-                WriteMessageForPlayerEvent?.Invoke("Увы, но вы проиграли.");
-            }
-            if (!IsClientPlayer) {      //  т.к. после уничтожения флотилии обмен прекращается, необходимо серверу прочитать ответ и вернуть, чтобы получить законченное состояние
-                TheServer.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
-                TheClient.WritePositionToSecondPlayer("go", WriteMessageForPlayerEvent);    // go - это значит Game Over
-            }
-        }
+            } while (true);
 
-        public string RunExchagePositionsForTwoPlayers(bool isMyMove)
-        {
-            string targetPosition = "";
-            if (isMyMove && IsClientPlayer) {
-                targetPosition = ReadValidPosition();
-                TheClient.WritePositionToSecondPlayer(targetPosition, WriteMessageForPlayerEvent);
-            }
-            else if (!isMyMove && IsClientPlayer) {
-                targetPosition = TheClient.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
-            }
-            else if (isMyMove && !IsClientPlayer) {
-                targetPosition = ReadValidPosition();
-                TheServer.WritePositionToSecondPlayer(targetPosition, WriteMessageForPlayerEvent);
-            }
-            else {
-                targetPosition = TheServer.ReadPositionFromSecondPlayer(WriteMessageForPlayerEvent);
-            }
-            return targetPosition;
         }
 
         public string ReadValidPosition()

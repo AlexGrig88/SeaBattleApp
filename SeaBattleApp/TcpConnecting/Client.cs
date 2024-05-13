@@ -16,7 +16,7 @@ namespace SeaBattleApp.TcpConnecting
     public class Client
     {
         public const int BUFFER_SIZE_INIT_FIELD = 300;
-        public const int BUFFER_SIZE_SHOT = 2;
+        public const int BUFFER_SIZE_SHOT = 6;  // example: 99 Yes 
         public int ThePort { get; set; }
         public string TheIpAdress { get; set; }
         private TcpClient _tcpClient;
@@ -27,7 +27,7 @@ namespace SeaBattleApp.TcpConnecting
         }
     
 
-    public Client(string ip, int port)
+        public Client(string ip, int port)
         {
             TheIpAdress = ip;
             ThePort = port;
@@ -50,7 +50,7 @@ namespace SeaBattleApp.TcpConnecting
         /// Отправляет моё поле + счётчик не потопленных кораблей, в виде строки на сервер 2-го игрока для инициализации OpponentField.Field, OpponentField.ShipsCounter, OpponentField.ShipsList
         /// </summary>
         /// <param name="myField"></param>
-        public string RunExchange(string myFieldAsStr, Action<string> action)
+        public string ExchangeSelfFields(string myFieldAsStr, Action<string> action)
         {
             try {
                 //NetworkStream stream = _tcpClient.GetStream();
@@ -81,29 +81,14 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
-        public void WritePositionToSecondPlayer(string position, Action<string> action)
+        public string WriteShot(string coordStrWithFlag, Action<string> action)
         {
             try {
-                position = Coordinate.Parse(position).ToSimpleString();    // т.к. у нас отправка фиксированной длину с 2-мя координатами в виде строки
-                _stream.Write(Encoding.ASCII.GetBytes(position));     
-            }
-            catch (Exception ex) {
-                action?.Invoke("Что-то пошло не так! Соединение разорвано.");
-                action?.Invoke(ex.Message);
-                _tcpClient.Close();
-                throw;
-            }
-        }
-
-        internal string ReadPositionFromSecondPlayer(Action<string>? action)
-        {
-            try {
-
                 byte[] bufferResponse = new byte[BUFFER_SIZE_SHOT];
-                action?.Invoke("Ждём когда соперник расставит корабли...");
+                _stream.Write(Encoding.ASCII.GetBytes(coordStrWithFlag));
+                action?.Invoke("Ждём когда соперник обработает сделанный выстрел...");
                 _stream.Read(bufferResponse);
-                string coordAsStr = Encoding.ASCII.GetString(bufferResponse);
-                return new Coordinate(int.Parse(coordAsStr[..1]), int.Parse(coordAsStr[1..])).GetPosition();
+                return Encoding.ASCII.GetString(bufferResponse)[3..];
             }
             catch (Exception ex) {
                 action?.Invoke("Что-то пошло не так! Соединение разорвано.");
@@ -111,6 +96,8 @@ namespace SeaBattleApp.TcpConnecting
                 _tcpClient.Close();
                 throw;
             }
+
         }
+
     }
 }

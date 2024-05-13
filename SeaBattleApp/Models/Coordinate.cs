@@ -39,5 +39,6 @@ namespace SeaBattleApp.Models
         }
 
         public string ToSimpleString() => "" + Row + Col;
+        public static Coordinate FromSimpleString(string rowCol) => new Coordinate(int.Parse(new string(rowCol[0], 1)), int.Parse(new string(rowCol[1], 1)));
     }
 }

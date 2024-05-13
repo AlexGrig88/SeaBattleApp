@@ -45,7 +45,7 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
-        public string RunExchange(string myBattlefieldAsStr, Action<string> action)
+        public string ExchangeSelfFields(string myBattlefieldAsStr, Action<string> action)
         {
             try {
                     
@@ -68,14 +68,34 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
-        public string ReadPositionFromSecondPlayer(Action<string> action)
+        public string ReadShot(Action<string> action)
         {
             try {
-                byte[] bufferInputData = new byte[Client.BUFFER_SIZE_SHOT];
-                action?.Invoke("\nЖдём, когда соперник сделает ход...\n");
-                int resBytes = _stream.Read(bufferInputData);
-                string coordAsStr = Encoding.ASCII.GetString(bufferInputData);
-                return new Coordinate(int.Parse(coordAsStr[..1]), int.Parse(coordAsStr[1..])).GetPosition();
+                byte[] input = new byte[Client.BUFFER_SIZE_SHOT];    // максимальная длина буфера 300 
+                action?.Invoke("Ждём, когда соперник сделает ход...");
+                // считываем данные
+                int resBytes = _stream.Read(input);
+
+                string inputCoordStrFlag = Encoding.ASCII.GetString(input);
+                // тут обработаем данные и отправим клиенту ответ
+                string TheFlag = inputCoordStrFlag.Split(' ')[1];
+                if (TheFlag == Game.HIT_FLAG) {
+                    action?.Invoke("Соперник попал. Снова его ход.");
+                    string output = inputCoordStrFlag.Replace(Game.HIT_FLAG, Game.ACK_FLAG);
+                    _stream.Write(Encoding.ASCII.GetBytes(output));
+                    return Coordinate.FromSimpleString(inputCoordStrFlag.Split(' ')[0]).GetPosition();
+                }
+                else if (TheFlag == Game.MISSED_FLAG) {
+                    action?.Invoke("Соперник промахнулся.");
+                    string output = inputCoordStrFlag.Replace(Game.MISSED_FLAG, Game.ACK_FLAG);
+                    _stream.Write(Encoding.ASCII.GetBytes(output));
+                    return Coordinate.FromSimpleString(inputCoordStrFlag.Split(' ')[0]).GetPosition();
+                }
+                else {
+                    action?.Invoke("Игра окончена.");
+                    _stream.Write(Encoding.ASCII.GetBytes(Game.ACK_FLAG + Game.ACK_FLAG));
+                    return Coordinate.FromSimpleString(inputCoordStrFlag.Split(' ')[0]).GetPosition();
+                }
             }
             catch (Exception ex) {
                 action?.Invoke("Что-то пошло не так. Соединение прервалось.");
@@ -84,20 +104,6 @@ namespace SeaBattleApp.TcpConnecting
                 throw;
             }
         }
-
-        public void WritePositionToSecondPlayer(string coordStr, Action<string> action)
-        {
-            try {
-                _stream.Write(Encoding.ASCII.GetBytes(coordStr));
-            }
-            catch (Exception ex) {
-                action?.Invoke("Что-то пошло не так. Соединение прервалось.");
-                _tcpListener.Stop();
-                IsStarted = false;
-                throw;
-            }
-        }
-
 
         public void Stop()
         {
