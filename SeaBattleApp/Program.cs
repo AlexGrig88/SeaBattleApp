@@ -46,7 +46,8 @@ class Program
                 game.Player1.Username = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                
             repeat:
-                Console.WriteLine("Определитесь кто из вас будет ходить первым. 1 - Вы, 2 - Соперник: ");
+                Console.WriteLine("Определитесь кто из вас будет ходить первым. Нажмите 1 - если Вы, 2 - если Соперник\n" +
+                    "Не забывайте - у вас должны быть разные ответы выбора. Если оба игрока выбирут 2, то игра зависнет и потребуется перезапустить её. Если оба выбрали 1, то подождите немного.): ");
                 var choiceRole = Console.ReadLine();
                 if (choiceRole == "1") {
                     game.IsClientPlayer = true;
