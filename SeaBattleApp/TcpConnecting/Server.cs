@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using SeaBattleApp.Models;
+using static System.Collections.Specialized.BitVector32;
 
 namespace SeaBattleApp.TcpConnecting
 {
@@ -105,6 +106,17 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
+        public string HandleSettingOpponentField(Action<string> action)
+        {
+            byte[] input = new byte[Client.BUFFER_SIZE_INIT_FIELD];    // максимальная длина буфера 300 
+            action?.Invoke("Жду, когда первый игрок отправит данные на установку моего второго поля поля...");
+            // считываем данные
+            int resBytes = _stream.Read(input);
+            string opponentField = Encoding.ASCII.GetString(input).Trim('.'); // очищаем неинформационные данные
+            _stream.Write(Encoding.ASCII.GetBytes(Game.ACK_FLAG));
+            return opponentField;
+        }
+
         public void Stop()
         {
             try {
@@ -127,5 +139,7 @@ namespace SeaBattleApp.TcpConnecting
             }
             return ipV4;
         }
+
+
     }
 }

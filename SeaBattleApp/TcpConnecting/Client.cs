@@ -17,6 +17,7 @@ namespace SeaBattleApp.TcpConnecting
     {
         public const int BUFFER_SIZE_INIT_FIELD = 300;
         public const int BUFFER_SIZE_SHOT = 6;  // example: 99 Yes 
+        public const int BUFFER_SIZE_ACK = 3;  // example: 99 Yes 
         public int ThePort { get; set; }
         public string TheIpAdress { get; set; }
         private TcpClient _tcpClient;
@@ -99,5 +100,21 @@ namespace SeaBattleApp.TcpConnecting
 
         }
 
+        public string SetOpponentField(string myBattlefielAsStr, Action<string> action)
+        {
+            try {
+                myBattlefielAsStr = myBattlefielAsStr.PadRight(BUFFER_SIZE_INIT_FIELD, '.');
+                byte[] bufferResponse = new byte[BUFFER_SIZE_ACK];
+                _stream.Write(Encoding.ASCII.GetBytes(myBattlefielAsStr));
+                _stream.Read(bufferResponse);
+                return Encoding.ASCII.GetString(bufferResponse);
+            }
+            catch (Exception ex) {
+                action?.Invoke("Что-то пошло не так! Соединение разорвано.");
+                action?.Invoke(ex.Message);
+                _tcpClient.Close();
+                throw;
+            }
+        }
     }
 }

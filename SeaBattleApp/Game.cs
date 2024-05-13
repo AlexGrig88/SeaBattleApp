@@ -65,7 +65,7 @@ namespace SeaBattleApp
             PlaceOpponentShips();
         }
 
-        public bool TrySynchronizeWithSecondPlayer()
+/*        public bool TrySynchronizeWithSecondPlayer()
         {
             
             WriteMessageForPlayerEvent?.Invoke("Ожидание получения соединения с серевером... ");
@@ -82,7 +82,7 @@ namespace SeaBattleApp
                 return false;
             }
             
-        }
+        }*/
 
         public void ExecuteSettingOpponentBattlefield()
         {
@@ -96,6 +96,20 @@ namespace SeaBattleApp
                 string opponentFieldAsStr = TheServer.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
                 InitOpponentBattlefield(opponentFieldAsStr);
             }
+        }
+
+        public void ExecuteSettingOpponentBattlefield2()
+        {
+            if (IsClientPlayer) {
+                string answer = TheClient.SetOpponentField(MyField.GetBattlefieldAsString(), WriteMessageForPlayerEvent);
+                if (answer == ACK_FLAG) {
+                    WriteMessageForPlayerEvent?.Invoke("Поле оппонента утсановлено.");
+                }
+            } else {
+                string opponentFieldAsStr = TheServer.HandleSettingOpponentField(WriteMessageForPlayerEvent);
+                InitOpponentBattlefield(opponentFieldAsStr);
+            }
+            IsClientPlayer = !IsClientPlayer;   
         }
 
 

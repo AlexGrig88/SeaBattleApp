@@ -52,7 +52,7 @@ class Program
                 var choiceRole = Console.ReadLine();
                 if (choiceRole == "1") {
                     game.IsClientPlayer = true;
-                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
+                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress}.\nСкажите его 2-му игроку, чтобы установить соединение.");
                     if (TryGetInitClient(game)) {
                         Console.WriteLine("Ждём, когда 2-ой игрок введёт данные!!!!!!!!!!!!!!!!!!!!!!");
                         if (game.TheServer.TryStart()) {
@@ -67,8 +67,8 @@ class Program
                 }
                 else if (choiceRole == "2") {
                     game.IsClientPlayer = false;
-                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress} и порт: {game.TheServer.ThePort}.\nСкажите их 2-му игроку, чтобы установить соединение.");
                     Console.WriteLine("Ждём, когда 2-ой игрок введёт данные!!!!!!!!!!!!!!!!!!!!!!");
+                    Console.WriteLine($"Вот ваш ip адрес: {game.TheServer.TheIpAdress}.\nСкажите его 2-му игроку, чтобы установить соединение.");
                     if (game.TheServer.TryStart()) {
                         Console.WriteLine("Принят сигнал!!!!!!!!!!!!!!!!!!!!!!");
                     }
@@ -99,11 +99,11 @@ class Program
         Console.WriteLine($"\n{border}\n {game.Player1.Username} {game.Greeting}\n{border}\n");
 
         if (game.ModeGame == Game.Mode.TwoPlayers) {
-            if (!game.TrySynchronizeWithSecondPlayer()) {
+/*            if (!game.TrySynchronizeWithSecondPlayer()) {
                 Console.WriteLine("Всё хорошо. Остановка. Нажмите любую клавишу...");
                 Console.ReadLine();
                 return oneMoreTime;     // запустить игру сначала
-            }
+            }*/
         }
         else {
             Console.WriteLine("Ждём соперника, когда он расставит свои корабли.");
@@ -170,9 +170,10 @@ class Program
 
         WriteLineColor("Все корабли установлены.\n", ConsoleColor.Magenta);
         if (game.ModeGame == Game.Mode.TwoPlayers) {
-            Console.WriteLine("Enter press.");
+            Console.WriteLine("Нажмите Enter и подождите, когда соперник подтвердит установку его поля вашим.");
             Console.ReadLine();
-            game.ExecuteSettingOpponentBattlefield();
+            game.ExecuteSettingOpponentBattlefield2();     // 2 раза, т.к. сначала сообщение отправляется, а потом читается (или наоборот)
+            game.ExecuteSettingOpponentBattlefield2();
             ShowGameBoardVer2(game);
             if (game.IsClientPlayer) {
                 Console.WriteLine("Тперерь можете стрелять по вражеским кораблям!\nНаведите пушку и пли! (введите координату): \n");
@@ -312,10 +313,9 @@ class Program
        
         Console.WriteLine("Спросите у 2-го игрока его ip-адрес и порт и введите их через пробел:");
         var choiceAddress = Console.ReadLine() ?? " ";
-        Regex ipPortRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} \d{5}");
-        if (ipPortRegex.IsMatch(choiceAddress)) {
-            var ipAndPort = choiceAddress.Split(" ");
-            game.TheClient = new Client(ipAndPort[0], int.Parse(ipAndPort[1]));
+        Regex ipRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
+        if (ipRegex.IsMatch(choiceAddress)) {
+            game.TheClient = new Client(choiceAddress, game.TheServer.ThePort);
             return game.TheClient.TryConnect();
         }
         else {
