@@ -46,10 +46,10 @@ class Program
                 userName = Console.ReadLine() ?? "Anon";
                 userName = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 game.Player1.Username = userName;
-                if (game.TheServer.TryStart()) {
-                    WriteLineColor("Не удалось запустить сервер. Попробуйте сначала.", ConsoleColor.Red);
-                    return oneMoreTime;
-                };
+                Task.Run(() =>
+                {
+                    var started = game.TheServer.TryStart();
+                });
             repeat:
                 Console.WriteLine("Определитесь кто из вас будет ходить первым. 1 - Вы, 2 - Соперник: ");
                 var choiceRole = Console.ReadLine();
