@@ -97,9 +97,16 @@ namespace SeaBattleApp
 
         public void ExecuteSettingOpponentBattlefield()
         {
-            string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-            string opponentFieldAsStr = TheClient.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
-            InitOpponentBattlefield(opponentFieldAsStr);
+            if (IsClientPlayer) {
+                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
+                string opponentFieldAsStr = TheClient.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                InitOpponentBattlefield(opponentFieldAsStr);
+            }
+            else {
+                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
+                string opponentFieldAsStr = TheServer.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
+                InitOpponentBattlefield(opponentFieldAsStr);
+            }
         }
 
 

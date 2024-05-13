@@ -50,7 +50,7 @@ namespace SeaBattleApp.TcpConnecting
             try {
                     
                 byte[] bufferInputData = new byte[Client.BUFFER_SIZE_INIT_FIELD];    // максимальная длина буфера 300 
-                action?.Invoke("Ждём, когда соперник расставит корабли...");
+                action?.Invoke("Жду данные от клиента (когда соперник расставит корабли)...");
                 // считываем данные
                 int resBytes = _stream.Read(bufferInputData);
                 var opponentBattlefieldStr = Encoding.ASCII.GetString(bufferInputData).Trim('.'); // очищаем неинформационные данные
