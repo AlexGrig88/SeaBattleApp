@@ -33,14 +33,15 @@ class Program
             case "1":
                 game.ModeGame = Game.Mode.SinglePlayer;
                 Console.WriteLine($"Вы выбрали режим игры с компьютером.\nЗдравствуйте игрок {game.Player1.Username}. ");
-                Console.WriteLine("Если это ваш никнейм, нажмите Enter или введите свой никнейм: ");
+                Console.WriteLine("Если это ваш никнейм, нажмите Enter, или введите свой никнейм: ");
                 userName = Console.ReadLine() ?? "Anon";
                 game.Player1.Username = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                 Console.WriteLine("\nОтлично, начнём игру!");
                 break;
             case "2":
                 game.ModeGame = Game.Mode.TwoPlayers;
-                Console.WriteLine("Вы выбрали режим c игроком по локальной сети.\nПредставьтесь пожалуйста: ");
+                Console.WriteLine($"Вы выбрали режим игры с компьютером.\nЗдравствуйте игрок {game.Player1.Username}. ");
+                Console.WriteLine("Если это ваш никнейм, нажмите Enter, или введите свой никнейм: ");
                 userName = Console.ReadLine() ?? "Anon";
                 game.Player1.Username = string.IsNullOrWhiteSpace(userName) ? "Anon" : userName;
                
