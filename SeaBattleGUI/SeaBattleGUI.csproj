@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SeaBattleApp\SeaBattleApp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Views\sea_battle_login.png" />
   </ItemGroup>
 

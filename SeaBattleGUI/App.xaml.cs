@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using SeaBattleApp;
+using System.Configuration;
 using System.Data;
 using System.Windows;
 
@@ -9,6 +10,11 @@ namespace SeaBattleGUI
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            Game Thegame = new Game();
+            base.OnStartup(e);
+        }
     }
 
 }

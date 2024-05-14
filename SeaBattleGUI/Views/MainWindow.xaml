@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeaBattleGUI"
         mc:Ignorable="d"
-        Title="Sea Battle Game" Height="680" Width="1200" ResizeMode="NoResize">
-    <DockPanel Background="LightSteelBlue" LastChildFill="True">
+        Title="Sea Battle Game" Height="680" Width="1000" ResizeMode="NoResize" Background="LightSteelBlue">
+    <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top" Height="25" VerticalAlignment="Center" FontSize="14">
             <MenuItem Header="Меню" VerticalAlignment="Center" HorizontalAlignment="Center" >
                 <MenuItem Header="Статистика" />
@@ -24,7 +24,7 @@
             </StatusBarItem>
         </StatusBar>
 
-        <StackPanel x:Name="StartingField" Orientation="Vertical" Width="1200">
+        <StackPanel Visibility="Collapsed"  x:Name="StartingField" Orientation="Vertical" Width="1000">
             <StackPanel.Background>
                 <ImageBrush ImageSource="/Views/sea_battle_login.png" Opacity="0.1"/>
             </StackPanel.Background>
@@ -38,18 +38,70 @@
             <Label HorizontalAlignment="Center" FontSize="20" Margin="10 40 10 0">
                 Выбирите режим игры
             </Label>
-            <RadioButton FontSize="16" Margin="500 10" GroupName="modeGame" HorizontalAlignment="Left" IsChecked="True" Cursor="Hand">
+            <RadioButton FontSize="16" Margin="400 10" GroupName="modeGame" HorizontalAlignment="Left" IsChecked="True" Cursor="Hand">
                 Игра с компьютером
             </RadioButton>
-            <RadioButton FontSize="16" Margin="500 0" GroupName="modeGame" HorizontalAlignment="Left" Cursor="Hand">
+            <RadioButton FontSize="16" Margin="400 0" GroupName="modeGame" HorizontalAlignment="Left" Cursor="Hand">
                 Игра на двоих
             </RadioButton>
             <Button Padding="5" Margin="0 80 0 0" Width="100" FontSize="20" Click="ButtonStart_Click" Cursor="Hand">
                 Играть
             </Button>
         </StackPanel>
-        <Grid x:Name="PlayingField" Visibility="Collapsed">
-            <Button>Button</Button>
+
+        <Grid x:Name="PlayingField" Visibility="Visible">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.75*"/>
+                <RowDefinition Height="0.25*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Canvas Grid.Row="0" Grid.Column="0">
+                <StackPanel Canvas.Top="70" Canvas.Left="100" Orientation="Horizontal">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">А</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Б</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">В</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Г</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Д</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Е</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Ж</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">З</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">И</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">К</TextBlock>
+                </StackPanel>
+
+                <StackPanel Canvas.Top="100" Canvas.Left="60" Orientation="Vertical">
+
+                </StackPanel>
+
+                <UniformGrid Canvas.Top="100" Canvas.Left="100" x:Name="GridFieldOwn" Rows="10" Columns="10">
+                    <Rectangle Width="30" Height="30" Fill="#FF7F2828"/>
+                </UniformGrid>
+            </Canvas>
+            <Canvas Grid.Row="0" Grid.Column="1">
+
+                <StackPanel Canvas.Top="70" Canvas.Left="100" Orientation="Horizontal">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">А</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Б</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">В</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Г</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Д</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Е</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">Ж</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">З</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">И</TextBlock>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">К</TextBlock>
+                </StackPanel>
+
+                <UniformGrid Canvas.Top="100" Canvas.Left="100" x:Name="GridFieldOpponent" Rows="10" Columns="10">
+                    <Rectangle Width="30" Height="30" Fill="#FFA02929"/>
+                </UniformGrid>
+            </Canvas>
+            <Canvas Grid.Row="1" Grid.ColumnSpan="2">
+
+            </Canvas>
         </Grid>
     </DockPanel>
 </Window>

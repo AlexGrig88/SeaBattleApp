@@ -37,6 +37,16 @@ namespace SeaBattleGUI
         {
             InitializeComponent();
             Closing += MainWindow_Closing;
+            for (int i = 0; i < 99; i++)
+            {
+                var rect = new Rectangle();
+                rect.Width = 30;
+                rect.Height = 30;
+                rect.Stroke = new SolidColorBrush(Color.FromRgb(100,150,150));
+                rect.Fill = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                rect.StrokeThickness = 1;
+                GridFieldOwn.Children.Add(rect);
+            }
         }
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
