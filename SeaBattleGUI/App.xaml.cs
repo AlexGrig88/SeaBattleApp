@@ -10,9 +10,11 @@ namespace SeaBattleGUI
     /// </summary>
     public partial class App : Application
     {
+        public Game TheGame { get; private set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
-            Game Thegame = new Game();
+            TheGame = new Game();
             base.OnStartup(e);
         }
     }
