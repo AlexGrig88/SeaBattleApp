@@ -9,11 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Images\gun5.jpg" />
     <None Remove="Views\sea_battle_login.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Images\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Images\gun5.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Views\sea_battle_login.png" />
   </ItemGroup>
 

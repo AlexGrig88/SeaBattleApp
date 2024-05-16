@@ -45,7 +45,7 @@
             <RadioButton x:Name="RadioBtnTwoPlayers" Margin="413,5,0,5" FontSize="16" GroupName="modeGame" Cursor="Hand" Checked="RadioBtnTwoPlayers_Checked">
                 Игра на двоих
             </RadioButton>
-            
+
             <StackPanel x:Name="StackNetworkData" HorizontalAlignment="Center" Visibility="Visible">
                 <TextBlock x:Name="TextBlockSelfIp" Width="200" Padding="8,3,3,3" FontSize="14" Margin="20,10,20,10" Background="#FF040000" Foreground="#FFBED2DA"></TextBlock>
                 <StackPanel Orientation="Horizontal">
@@ -69,7 +69,8 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Canvas Grid.Row="0" Grid.Column="0">
-
+                <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="400" Canvas.Top="279"></Image>
+                
                 <Label FontSize="18" FontWeight="SemiBold" Canvas.Top="30" Canvas.Left="195">Моё Поле</Label>
                 <StackPanel x:Name="LineLettersSelf" Canvas.Top="70" Canvas.Left="100" Orientation="Horizontal">
                     <!-- <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">А</TextBlock> -->
@@ -79,12 +80,21 @@
                 <StackPanel x:Name="LineNumbersSelf" Canvas.Top="102" Canvas.Left="75" Orientation="Vertical">
                     <!-- <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,3,0,4">1</TextBlock> -->
                 </StackPanel>
-                <UniformGrid Canvas.Top="100" Canvas.Left="100" x:Name="GridFieldOwn" Rows="10" Columns="10">
+                <UniformGrid x:Name="GridFieldSelf" Canvas.Top="100" Canvas.Left="100"  Rows="10" Columns="10">
                     <Button Width="30" Height="30" Background="#FFA96666" BorderBrush="#FFACB7A9">1</Button>
                 </UniformGrid>
+                <TextBlock Canvas.Left="420" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF156721" FontFamily="Comic Sans MS"/>
             </Canvas>
+            
+            
             <Canvas Grid.Row="0" Grid.Column="1">
+                <TextBlock Canvas.Left="40" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF801B1B" FontFamily="Comic Sans MS"/>
 
+                <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="15" Canvas.Top="279"  RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <ScaleTransform ScaleX="-1"/>
+                    </Image.RenderTransform>
+                </Image>
                 <Label FontSize="18" FontWeight="SemiBold" Canvas.Top="30" Canvas.Left="175">Соперника Поле</Label>
                 <StackPanel x:Name="LineLettersOpponent" Canvas.Top="70" Canvas.Left="100" Orientation="Horizontal">
                 </StackPanel>

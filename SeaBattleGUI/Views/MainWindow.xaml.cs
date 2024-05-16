@@ -13,6 +13,8 @@ namespace SeaBattleGUI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static int START_ID_SELF = 0;
+        private static int START_ID_OPPONENT = 100;
         private const string ABOUT = @"Классический морской бой.
 Правила размещения кораблей (флота):
 Игровое поле — обычно квадрат 10×10 у каждого игрока, на котором размещается флот кораблей. Горизонтали обычно нумеруются сверху вниз, а вертикали помечаются буквами слева направо. При этом используются буквы русского алфавита от «А» до «К» (буквы «Ё» и «Й» обычно пропускаются). Размещаются:
@@ -36,8 +38,8 @@ namespace SeaBattleGUI
             
             var lengthField = game.CurrentField.Rows;
             Closing += MainWindow_Closing;
-            FillUniformGrid(GridFieldOwn, lengthField);
-            FillUniformGrid(GridFieldOpponent, lengthField);
+            FillUniformGrid(GridFieldSelf, lengthField, START_ID_SELF);
+            FillUniformGrid(GridFieldOpponent, lengthField, START_ID_OPPONENT);
             FillStackCharacters(LineLettersSelf, lengthField, Orientation.Horizontal, 100, 70);
             FillStackCharacters(LineLettersOpponent, lengthField, Orientation.Horizontal, 100, 70);
             FillStackCharacters(LineNumbersSelf, lengthField, Orientation.Vertical, 80, 102);
@@ -72,21 +74,28 @@ namespace SeaBattleGUI
             }
         }
 
-        private void FillUniformGrid(UniformGrid grid, int length)
-        {
-            for (int i = 0; i < length * length - 1; i++) {
-                var btnCell = new Button()
-                {
-                    Width = 30,
-                    Height = 30,
-                    Background = new SolidColorBrush(Color.FromRgb(250, 232, 232)),
-                    BorderBrush = new SolidColorBrush(Color.FromRgb(176, 184, 164)),
-                };
-                grid.Children.Add(btnCell);
-            }
-        }
+		private void FillUniformGrid(UniformGrid grid, int length, int startId)
+		{
+			for (int i = 0; i < length * length - 1; i++) {
+				var btnCell = new Button()
+				{
+					Tag = startId + i,
+					Width = 30,
+					Height = 30,
+					Background = new SolidColorBrush(Color.FromRgb(250, 232, 232)),
+					BorderBrush = new SolidColorBrush(Color.FromRgb(176, 184, 164)),
+				};
+				btnCell.Click += ButtonCell_Click;
+				grid.Children.Add(btnCell);
+			}
+		}
 
-        private void MainWindow_Closing(object? sender, CancelEventArgs e)
+		private void ButtonCell_Click(object sender, RoutedEventArgs e)
+		{
+			MessageBox.Show(((Button)sender).Tag.ToString());
+		}
+
+		private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
             string msg = "Вы действительно хотите закрыть программу?";
             var result = MessageBox.Show(msg, Title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -123,5 +132,5 @@ namespace SeaBattleGUI
 
         private void RadioBtnComp_Checked(object sender, RoutedEventArgs e) => StackNetworkData.Visibility = Visibility.Hidden;
 
-    }
+	}
 }
