@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <None Remove="Resources\Images\gun5.jpg" />
+    <None Remove="Resources\Images\Ship1.png" />
+    <None Remove="Resources\Images\Ship2.png" />
+    <None Remove="Resources\Images\Ship3.png" />
+    <None Remove="Resources\Images\Ship4.png" />
     <None Remove="Views\sea_battle_login.png" />
   </ItemGroup>
 
@@ -20,6 +24,18 @@
   <ItemGroup>
     <Resource Include="Resources\Images\gun5.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\Ship1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\Ship2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\Ship3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\Ship4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Views\sea_battle_login.png" />
   </ItemGroup>

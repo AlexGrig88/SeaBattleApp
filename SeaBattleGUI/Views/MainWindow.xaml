@@ -70,7 +70,7 @@
             </Grid.ColumnDefinitions>
             <Canvas Grid.Row="0" Grid.Column="0">
                 <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="400" Canvas.Top="279"></Image>
-                
+
                 <Label FontSize="18" FontWeight="SemiBold" Canvas.Top="30" Canvas.Left="195">Моё Поле</Label>
                 <StackPanel x:Name="LineLettersSelf" Canvas.Top="70" Canvas.Left="100" Orientation="Horizontal">
                     <!-- <TextBlock FontSize="18" FontWeight="SemiBold" Margin="9,0,9,0">А</TextBlock> -->
@@ -85,8 +85,8 @@
                 </UniformGrid>
                 <TextBlock Canvas.Left="420" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF156721" FontFamily="Comic Sans MS"/>
             </Canvas>
-            
-            
+
+
             <Canvas Grid.Row="0" Grid.Column="1">
                 <TextBlock Canvas.Left="40" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF801B1B" FontFamily="Comic Sans MS"/>
 
@@ -108,6 +108,17 @@
             </Canvas>
             <Canvas Grid.Row="1" Grid.ColumnSpan="2">
                 <Button Click="ButtonPrevPage_Click" >Previous</Button>
+                <Image Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"></Image>
+                <Image Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="440" Canvas.Top="20"></Image>
+                <Image Source="\Resources\Images\ship3.png" MaxWidth="90" Canvas.Left="240" Canvas.Top="20"></Image>
+                <Image Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20"></Image>
+                <TextBlock Canvas.Left="165" TextWrapping="Wrap" Text="x 1 шт." Canvas.Top="25" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold"/>
+                <TextBlock Canvas.Left="335" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <TextBlock Canvas.Left="505" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Canvas.Left="655" TextWrapping="Wrap" Text="x 4 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Canvas.Left="801" TextWrapping="Wrap" Canvas.Top="20" Height="78" Width="158" TextAlignment="Left">
+                    *Нажмите правой кнопкой мыши, чтобы поменять ориентацию корабля. Левой, чтобы выбрать его для установки.
+                </TextBlock>
             </Canvas>
         </Grid>
     </DockPanel>
