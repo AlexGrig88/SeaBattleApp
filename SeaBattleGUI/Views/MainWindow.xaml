@@ -68,7 +68,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Canvas Grid.Row="0" Grid.Column="0">
+            <Canvas Grid.Row="0" Grid.Column="0" Background="Transparent">
                 <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="400" Canvas.Top="279"></Image>
 
                 <Label FontSize="18" FontWeight="SemiBold" Canvas.Top="30" Canvas.Left="195">Моё Поле</Label>
@@ -87,7 +87,7 @@
             </Canvas>
 
 
-            <Canvas Grid.Row="0" Grid.Column="1">
+            <Canvas Grid.Row="0" Grid.Column="1" Background="Transparent">
                 <TextBlock Canvas.Left="40" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF801B1B" FontFamily="Comic Sans MS"/>
 
                 <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="15" Canvas.Top="279"  RenderTransformOrigin="0.5,0.5">
@@ -106,12 +106,17 @@
                     <Button Width="30" Height="30" Background="#FFA96666">1</Button>
                 </UniformGrid>
             </Canvas>
-            <Canvas Grid.Row="1" Grid.ColumnSpan="2">
+            <Canvas Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
+                
                 <Button Click="ButtonPrevPage_Click" >Previous</Button>
-                <Image Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"></Image>
-                <Image x:Name="ImgShip2" Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="462" Canvas.Top="21" MouseLeftButtonDown="ButtonLeftPressed_Ship4Img" MouseRightButtonDown="ButtonRightPressed_Ship4Img"></Image>
-                <Image x:Name="ImgShip3" Source="\Resources\Images\ship3.png" MaxWidth="90" Canvas.Left="263" Canvas.Top="20" MouseLeftButtonDown="ButtonLeftPressed_Ship4Img" MouseRightButtonDown="ButtonRightPressed_Ship4Img" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
-                <Image x:Name="ImgShip4" Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20" MouseLeftButtonDown="ButtonLeftPressed_Ship4Img" MouseRightButtonDown="ButtonRightPressed_Ship4Img"></Image>
+                <Image x:Name="ImgShip1" Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"
+                       MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
+                <Image x:Name="ImgShip2" Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="462" Canvas.Top="20"
+                       MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
+                <Image x:Name="ImgShip3" Source="\Resources\Images\ship3.png" MaxWidth="90" Canvas.Left="263" Canvas.Top="20"
+                       MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
+                <Image x:Name="ImgShip4" Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20"
+                       MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
 
                 <TextBlock Canvas.Left="165" TextWrapping="Wrap" Text="x 1 шт." Canvas.Top="25" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold"/>
                 <TextBlock Canvas.Left="358" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>

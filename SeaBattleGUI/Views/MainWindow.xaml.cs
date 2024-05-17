@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 
 
@@ -32,9 +33,9 @@ namespace SeaBattleGUI
 
 Самыми уязвимыми являются линкор и торпедный катер: первый из-за крупных размеров, в связи с чем его сравнительно легко найти, а второй из-за того, что топится с одного удара, хотя его найти достаточно сложно.";
         private Game game = ((App)Application.Current).TheGame;
-        private Dictionary<string, bool> _mapShipImgIsHorizontal;
 		private RotateTransform Rotate90 => new RotateTransform(90);
-		private RotateTransform RotateMinus90 => new RotateTransform(0);
+		private RotateTransform Rotate0 => new RotateTransform(0);
+        private List<ShipImgOutline> _shipsImgOutline;
 
 		public MainWindow()
         {
@@ -45,10 +46,6 @@ namespace SeaBattleGUI
 
         private void InitGameWindow()
         {
-			_mapShipImgIsHorizontal = new Dictionary<string, bool>();
-			_mapShipImgIsHorizontal.Add(ImgShip4.Name, true);
-			_mapShipImgIsHorizontal.Add(ImgShip3.Name, true);
-			_mapShipImgIsHorizontal.Add(ImgShip2.Name, true);
 
 			var lengthField = game.CurrentField.Rows;
 			Closing += MainWindow_Closing;
@@ -58,6 +55,14 @@ namespace SeaBattleGUI
 			FillStackCharacters(LineLettersOpponent, lengthField, Orientation.Horizontal, 100, 70);
 			FillStackCharacters(LineNumbersSelf, lengthField, Orientation.Vertical, 80, 102);
 			FillStackCharacters(LineNumbersOpponent, lengthField, Orientation.Vertical, 415, 102);
+
+
+			_shipsImgOutline = new List<ShipImgOutline>();
+            _shipsImgOutline.Add(new ShipImgOutline(ImgShip4.Name, 4, true, 1));
+            _shipsImgOutline.Add(new ShipImgOutline(ImgShip3.Name, 3, true, 2));
+            _shipsImgOutline.Add(new ShipImgOutline(ImgShip2.Name, 2, true, 3));
+            _shipsImgOutline.Add(new ShipImgOutline(ImgShip1.Name, 1, true, 4));
+
 		}
 
         private void FillStackCharacters(StackPanel stack, int length, Orientation orientation, int offsetLeft, int offsetRight)
@@ -144,22 +149,60 @@ namespace SeaBattleGUI
 
         private void RadioBtnComp_Checked(object sender, RoutedEventArgs e) => StackNetworkData.Visibility = Visibility.Hidden;
 
-		private void ButtonLeftPressed_Ship4Img(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private void ButtonLeftPressed_ImgShip(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
-			MessageBox.Show(nameof(ImgShip4));
+			var imageShip = (Image)sender;
+			ShipImgOutline shipOutline = _shipsImgOutline.Single(sh => sh.Name == imageShip.Name);
+			Cursor = Cursors.None;
+            Cursor = _shipsImgOutline.Single(sh => sh.Name == imageShip.Name).GetCursor(); 
 		}
 
-		private void ButtonRightPressed_Ship4Img(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private void ButtonRightPressed_ImgShip(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
-            var imageThis = (Image)sender;
-
-			if (_mapShipImgIsHorizontal[imageThis.Name]) {
-				imageThis.RenderTransform = Rotate90;
+            var imageShip = (Image)sender;
+			ShipImgOutline shipOutline = _shipsImgOutline.Single(sh => sh.Name == imageShip.Name);
+            if (shipOutline.Length == 1) return;
+			if (shipOutline.IsHorizontal) {
+				imageShip.RenderTransform = Rotate90;
 			}
             else {
-				imageThis.RenderTransform = RotateMinus90;
+				imageShip.RenderTransform = Rotate0;
 			}
-            _mapShipImgIsHorizontal[imageThis.Name] = !_mapShipImgIsHorizontal[imageThis.Name];
+			shipOutline.IsHorizontal = !shipOutline.IsHorizontal;
 		}
+	}
+
+    class ShipImgOutline
+    {
+        private const string PREFIX_PATH = "pack://application:,,,/Resources/Cursors/";
+		public string Name { get; set; }
+		public int Length { get; set; }
+		public bool IsHorizontal { get; set; }
+        public int CounterDownShips { get; set; }
+        private Cursor[] _cursorsImgVertical;
+        private Cursor[] _cursorsImgHorizontal;
+
+		public ShipImgOutline(string name, int length , bool isHorizontal, int counterRemainderPart)
+		{
+			Name = name;
+			IsHorizontal = isHorizontal;
+            Length = length;
+			CounterDownShips = counterRemainderPart;
+            _cursorsImgHorizontal = new Cursor[] {
+                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip1.cur")).Stream),
+                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip2H.cur")).Stream),
+                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip3H.cur")).Stream),
+                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip4H.cur")).Stream),
+            };
+			_cursorsImgVertical = new Cursor[] {
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip1.cur")).Stream),
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip2V.cur")).Stream),
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip3V.cur")).Stream),
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip4V.cur")).Stream),
+			};
+
+		}
+
+        public Cursor GetCursor() => IsHorizontal ? _cursorsImgHorizontal[Length - 1] : _cursorsImgVertical[Length - 1];
 	}
 }
