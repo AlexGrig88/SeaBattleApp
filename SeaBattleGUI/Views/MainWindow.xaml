@@ -109,12 +109,13 @@
             <Canvas Grid.Row="1" Grid.ColumnSpan="2">
                 <Button Click="ButtonPrevPage_Click" >Previous</Button>
                 <Image Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"></Image>
-                <Image Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="440" Canvas.Top="20"></Image>
-                <Image Source="\Resources\Images\ship3.png" MaxWidth="90" Canvas.Left="240" Canvas.Top="20"></Image>
-                <Image Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20"></Image>
+                <Image x:Name="ImgShip2" Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="462" Canvas.Top="21" MouseLeftButtonDown="ButtonLeftPressed_Ship4Img" MouseRightButtonDown="ButtonRightPressed_Ship4Img"></Image>
+                <Image x:Name="ImgShip3" Source="\Resources\Images\ship3.png" MaxWidth="90" Canvas.Left="263" Canvas.Top="20" MouseLeftButtonDown="ButtonLeftPressed_Ship4Img" MouseRightButtonDown="ButtonRightPressed_Ship4Img" HorizontalAlignment="Left" VerticalAlignment="Center"></Image>
+                <Image x:Name="ImgShip4" Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20" MouseLeftButtonDown="ButtonLeftPressed_Ship4Img" MouseRightButtonDown="ButtonRightPressed_Ship4Img"></Image>
+
                 <TextBlock Canvas.Left="165" TextWrapping="Wrap" Text="x 1 шт." Canvas.Top="25" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold"/>
-                <TextBlock Canvas.Left="335" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <TextBlock Canvas.Left="505" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Canvas.Left="358" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock Canvas.Left="527" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <TextBlock Canvas.Left="655" TextWrapping="Wrap" Text="x 4 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <TextBlock Canvas.Left="801" TextWrapping="Wrap" Canvas.Top="20" Height="78" Width="158" TextAlignment="Left">
                     *Нажмите правой кнопкой мыши, чтобы поменять ориентацию корабля. Левой, чтобы выбрать его для установки.

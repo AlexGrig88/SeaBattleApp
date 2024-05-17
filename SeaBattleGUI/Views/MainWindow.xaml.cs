@@ -32,21 +32,33 @@ namespace SeaBattleGUI
 
 Самыми уязвимыми являются линкор и торпедный катер: первый из-за крупных размеров, в связи с чем его сравнительно легко найти, а второй из-за того, что топится с одного удара, хотя его найти достаточно сложно.";
         private Game game = ((App)Application.Current).TheGame;
-        public MainWindow()
+        private Dictionary<string, bool> _mapShipImgIsHorizontal;
+		private RotateTransform Rotate90 => new RotateTransform(90);
+		private RotateTransform RotateMinus90 => new RotateTransform(0);
+
+		public MainWindow()
         {
             InitializeComponent();
-            
-            var lengthField = game.CurrentField.Rows;
-            Closing += MainWindow_Closing;
-            FillUniformGrid(GridFieldSelf, lengthField, START_ID_SELF);
-            FillUniformGrid(GridFieldOpponent, lengthField, START_ID_OPPONENT);
-            FillStackCharacters(LineLettersSelf, lengthField, Orientation.Horizontal, 100, 70);
-            FillStackCharacters(LineLettersOpponent, lengthField, Orientation.Horizontal, 100, 70);
-            FillStackCharacters(LineNumbersSelf, lengthField, Orientation.Vertical, 80, 102);
-            FillStackCharacters(LineNumbersOpponent, lengthField, Orientation.Vertical, 415, 102);
-
+            InitGameWindow();
             RadioBtnCompPlayer.IsChecked = true;
         }
+
+        private void InitGameWindow()
+        {
+			_mapShipImgIsHorizontal = new Dictionary<string, bool>();
+			_mapShipImgIsHorizontal.Add(ImgShip4.Name, true);
+			_mapShipImgIsHorizontal.Add(ImgShip3.Name, true);
+			_mapShipImgIsHorizontal.Add(ImgShip2.Name, true);
+
+			var lengthField = game.CurrentField.Rows;
+			Closing += MainWindow_Closing;
+			FillUniformGrid(GridFieldSelf, lengthField, START_ID_SELF);
+			FillUniformGrid(GridFieldOpponent, lengthField, START_ID_OPPONENT);
+			FillStackCharacters(LineLettersSelf, lengthField, Orientation.Horizontal, 100, 70);
+			FillStackCharacters(LineLettersOpponent, lengthField, Orientation.Horizontal, 100, 70);
+			FillStackCharacters(LineNumbersSelf, lengthField, Orientation.Vertical, 80, 102);
+			FillStackCharacters(LineNumbersOpponent, lengthField, Orientation.Vertical, 415, 102);
+		}
 
         private void FillStackCharacters(StackPanel stack, int length, Orientation orientation, int offsetLeft, int offsetRight)
         {
@@ -97,11 +109,11 @@ namespace SeaBattleGUI
 
 		private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
-            string msg = "Вы действительно хотите закрыть программу?";
+            /*string msg = "Вы действительно хотите закрыть программу?";
             var result = MessageBox.Show(msg, Title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.No) {
                 e.Cancel = true;
-            }
+            }*/
         }
 
         private void MenuExit_Close(object sender, RoutedEventArgs e) => Close();
@@ -132,5 +144,22 @@ namespace SeaBattleGUI
 
         private void RadioBtnComp_Checked(object sender, RoutedEventArgs e) => StackNetworkData.Visibility = Visibility.Hidden;
 
+		private void ButtonLeftPressed_Ship4Img(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		{
+			MessageBox.Show(nameof(ImgShip4));
+		}
+
+		private void ButtonRightPressed_Ship4Img(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		{
+            var imageThis = (Image)sender;
+
+			if (_mapShipImgIsHorizontal[imageThis.Name]) {
+				imageThis.RenderTransform = Rotate90;
+			}
+            else {
+				imageThis.RenderTransform = RotateMinus90;
+			}
+            _mapShipImgIsHorizontal[imageThis.Name] = !_mapShipImgIsHorizontal[imageThis.Name];
+		}
 	}
 }
