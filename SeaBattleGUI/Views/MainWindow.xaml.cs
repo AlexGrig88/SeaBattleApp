@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using SeaBattleApp.Models;
 
 
 namespace SeaBattleGUI
@@ -14,8 +15,8 @@ namespace SeaBattleGUI
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static int START_ID_SELF = 0;
-        private static int START_ID_OPPONENT = 100;
+        private static int START_BUTTON_ID_SELF = 0;
+        private static int START_BUTTON_ID_OPPONENT = 100;
         private const string ABOUT = @"Классический морской бой.
 Правила размещения кораблей (флота):
 Игровое поле — обычно квадрат 10×10 у каждого игрока, на котором размещается флот кораблей. Горизонтали обычно нумеруются сверху вниз, а вертикали помечаются буквами слева направо. При этом используются буквы русского алфавита от «А» до «К» (буквы «Ё» и «Й» обычно пропускаются). Размещаются:
@@ -33,24 +34,33 @@ namespace SeaBattleGUI
 
 Самыми уязвимыми являются линкор и торпедный катер: первый из-за крупных размеров, в связи с чем его сравнительно легко найти, а второй из-за того, что топится с одного удара, хотя его найти достаточно сложно.";
         private Game game = ((App)Application.Current).TheGame;
+        private List<Ship> _shipsListOutline;
+
 		private RotateTransform Rotate90 => new RotateTransform(90);
 		private RotateTransform Rotate0 => new RotateTransform(0);
         private List<ShipImgOutline> _shipsImgOutline;
+        private ShipImgOutline CurrentShipImgOutline { get; set; }
+        private List<Button> ButtonsCellsSelf;
+        private List<Button> ButtonsCellsOpponent;
 
 		public MainWindow()
         {
             InitializeComponent();
             InitGameWindow();
-            RadioBtnCompPlayer.IsChecked = true;
+           
+            _shipsListOutline = game.createShips();
         }
 
         private void InitGameWindow()
         {
 
 			var lengthField = game.CurrentField.Rows;
+			RadioBtnCompPlayer.IsChecked = true;
+            ButtonsCellsSelf = new List<Button>();
+            ButtonsCellsOpponent = new List<Button>();
 			Closing += MainWindow_Closing;
-			FillUniformGrid(GridFieldSelf, lengthField, START_ID_SELF);
-			FillUniformGrid(GridFieldOpponent, lengthField, START_ID_OPPONENT);
+			GenerateButtonsCells(GridFieldSelf, lengthField, START_BUTTON_ID_SELF);
+			GenerateButtonsCells(GridFieldOpponent, lengthField, START_BUTTON_ID_OPPONENT);
 			FillStackCharacters(LineLettersSelf, lengthField, Orientation.Horizontal, 100, 70);
 			FillStackCharacters(LineLettersOpponent, lengthField, Orientation.Horizontal, 100, 70);
 			FillStackCharacters(LineNumbersSelf, lengthField, Orientation.Vertical, 80, 102);
@@ -91,9 +101,9 @@ namespace SeaBattleGUI
             }
         }
 
-		private void FillUniformGrid(UniformGrid grid, int length, int startId)
+		private void GenerateButtonsCells(UniformGrid grid, int length, int startId)
 		{
-			for (int i = 0; i < length * length - 1; i++) {
+			for (int i = 0; i < length * length; i++) {
 				var btnCell = new Button()
 				{
 					Tag = startId + i,
@@ -103,13 +113,21 @@ namespace SeaBattleGUI
 					BorderBrush = new SolidColorBrush(Color.FromRgb(176, 184, 164)),
 				};
 				btnCell.Click += ButtonCell_Click;
+                if (startId == START_BUTTON_ID_SELF) {
+                    ButtonsCellsSelf.Add(btnCell);
+                }
+                else {
+                    ButtonsCellsOpponent.Add(btnCell);
+                }
 				grid.Children.Add(btnCell);
 			}
 		}
 
 		private void ButtonCell_Click(object sender, RoutedEventArgs e)
 		{
-			MessageBox.Show(((Button)sender).Tag.ToString());
+            Button thisButton = (Button)sender;
+            MessageBox.Show(thisButton.Tag.ToString());
+			
 		}
 
 		private void MainWindow_Closing(object? sender, CancelEventArgs e)
@@ -153,8 +171,10 @@ namespace SeaBattleGUI
 		{
 			var imageShip = (Image)sender;
 			ShipImgOutline shipOutline = _shipsImgOutline.Single(sh => sh.Name == imageShip.Name);
+			CurrentShipImgOutline = shipOutline;
 			Cursor = Cursors.None;
-            Cursor = _shipsImgOutline.Single(sh => sh.Name == imageShip.Name).GetCursor(); 
+            Cursor = _shipsImgOutline.Single(sh => sh.Name == imageShip.Name).GetCursor();
+			
 		}
 
 		private void ButtonRightPressed_ImgShip(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -170,37 +190,41 @@ namespace SeaBattleGUI
 			}
 			shipOutline.IsHorizontal = !shipOutline.IsHorizontal;
 		}
+
 	}
 
-    class ShipImgOutline
+	class ShipImgOutline
     {
         private const string PREFIX_PATH = "pack://application:,,,/Resources/Cursors/";
 		public string Name { get; set; }
 		public int Length { get; set; }
 		public bool IsHorizontal { get; set; }
         public int CounterDownShips { get; set; }
-        private Cursor[] _cursorsImgVertical;
-        private Cursor[] _cursorsImgHorizontal;
+        private static Cursor[] _cursorsImgVertical;
+        private static Cursor[] _cursorsImgHorizontal;
 
-		public ShipImgOutline(string name, int length , bool isHorizontal, int counterRemainderPart)
-		{
-			Name = name;
-			IsHorizontal = isHorizontal;
-            Length = length;
-			CounterDownShips = counterRemainderPart;
-            _cursorsImgHorizontal = new Cursor[] {
-                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip1.cur")).Stream),
-                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip2H.cur")).Stream),
-                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip3H.cur")).Stream),
-                new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip4H.cur")).Stream),
-            };
+        static ShipImgOutline()
+        {
+			_cursorsImgHorizontal = new Cursor[] {
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip1.cur")).Stream),
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip2H.cur")).Stream),
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip3H.cur")).Stream),
+				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip4H.cur")).Stream),
+			};
 			_cursorsImgVertical = new Cursor[] {
 				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip1.cur")).Stream),
 				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip2V.cur")).Stream),
 				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip3V.cur")).Stream),
 				new Cursor(Application.GetResourceStream(new Uri($"{PREFIX_PATH}CursorShip4V.cur")).Stream),
 			};
+		}
 
+		public ShipImgOutline(string name, int length , bool isHorizontal, int counterRemainderPart)
+		{
+			Name = name;
+			IsHorizontal = isHorizontal;
+            Length = length;
+            CounterDownShips = counterRemainderPart;
 		}
 
         public Cursor GetCursor() => IsHorizontal ? _cursorsImgHorizontal[Length - 1] : _cursorsImgVertical[Length - 1];

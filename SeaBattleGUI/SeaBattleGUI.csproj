@@ -22,6 +22,7 @@
     <None Remove="Resources\Images\Ship2.png" />
     <None Remove="Resources\Images\Ship3.png" />
     <None Remove="Resources\Images\Ship4.png" />
+    <None Remove="Views\advice.png" />
     <None Remove="Views\sea_battle_login.png" />
   </ItemGroup>
 
@@ -66,6 +67,7 @@
     <Resource Include="Resources\Images\Ship4.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Views\advice.png" />
     <Resource Include="Views\sea_battle_login.png" />
   </ItemGroup>
 

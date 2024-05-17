@@ -81,7 +81,7 @@
                     <!-- <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,3,0,4">1</TextBlock> -->
                 </StackPanel>
                 <UniformGrid x:Name="GridFieldSelf" Canvas.Top="100" Canvas.Left="100"  Rows="10" Columns="10">
-                    <Button Width="30" Height="30" Background="#FFA96666" BorderBrush="#FFACB7A9">1</Button>
+                    <!-- <Button Width="30" Height="30" Background="#FFA96666" BorderBrush="#FFACB7A9">1</Button> -->
                 </UniformGrid>
                 <TextBlock Canvas.Left="420" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF156721" FontFamily="Comic Sans MS"/>
             </Canvas>
@@ -102,12 +102,12 @@
                 <StackPanel  x:Name="LineNumbersOpponent" Canvas.Top="102" Canvas.Left="410" Orientation="Vertical">
                 </StackPanel>
 
-                <UniformGrid Canvas.Top="100" Canvas.Left="100" x:Name="GridFieldOpponent" Rows="10" Columns="10">
-                    <Button Width="30" Height="30" Background="#FFA96666">1</Button>
+                <UniformGrid x:Name="GridFieldOpponent"  Canvas.Top="100" Canvas.Left="100" Rows="10" Columns="10">
+                    <!-- <Button Width="30" Height="30" Background="#FFA96666">1</Button> -->
                 </UniformGrid>
             </Canvas>
             <Canvas Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
-                
+
                 <Button Click="ButtonPrevPage_Click" >Previous</Button>
                 <Image x:Name="ImgShip1" Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"
                        MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
@@ -122,9 +122,14 @@
                 <TextBlock Canvas.Left="358" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <TextBlock Canvas.Left="527" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <TextBlock Canvas.Left="655" TextWrapping="Wrap" Text="x 4 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock Canvas.Left="801" TextWrapping="Wrap" Canvas.Top="20" Height="78" Width="158" TextAlignment="Left">
-                    *Нажмите правой кнопкой мыши, чтобы поменять ориентацию корабля. Левой, чтобы выбрать его для установки.
-                </TextBlock>
+                <Border x:Name="TextBlockHint" Canvas.Left="762" Margin="5" Padding="5" BorderThickness="1" BorderBrush="Green" Background="AntiqueWhite" CornerRadius="5">
+                    <TextBlock  TextWrapping="Wrap" Height="90" Width="180" TextAlignment="Left" Foreground="#FF2C7D1C" Padding="5,5,5,5" FontStyle="Italic" FontWeight="Bold" >
+    * Нажмите Правой кнопкой мыши, чтобы поменять ориентацию корабля. Левой, чтобы выбрать его для установки.
+                    </TextBlock>
+                </Border>
+                
+                <Image x:Name="ImageHint" Canvas.Left="709" Canvas.Top="91" Width="60" Source="/Views/advice.png">
+                </Image>
             </Canvas>
         </Grid>
     </DockPanel>
