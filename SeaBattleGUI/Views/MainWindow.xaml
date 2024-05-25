@@ -16,10 +16,10 @@
                 <MenuItem Header="Правила игры" Click="AboutMenu_Click" />
             </MenuItem>
         </Menu>
-        <StatusBar Height="25" DockPanel.Dock="Bottom">
-            <StatusBarItem>
+        <StatusBar Height="30" DockPanel.Dock="Bottom" Foreground="#FFF3EEEE" FontSize="14" Background="Black">
+            <StatusBarItem Background="#FF142654">
                 <TextBlock>
-                    Ready
+                    Расставляйте клорабли на поле.
                 </TextBlock>
             </StatusBarItem>
         </StatusBar>
@@ -68,7 +68,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Canvas Grid.Row="0" Grid.Column="0" Background="Transparent">
+            <Canvas x:Name="SelfField" Grid.Row="0" Grid.Column="0" Background="Transparent" MouseLeftButtonDown="SelfField_MouseLeftButtonDown">
                 <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="400" Canvas.Top="279"></Image>
 
                 <Label FontSize="18" FontWeight="SemiBold" Canvas.Top="30" Canvas.Left="195">Моё Поле</Label>
@@ -87,7 +87,7 @@
             </Canvas>
 
 
-            <Canvas Grid.Row="0" Grid.Column="1" Background="Transparent">
+            <Canvas Grid.Row="0" Grid.Column="1" Background="Transparent" MouseLeftButtonDown="OpponentField_MouseLeftButtonDown">
                 <TextBlock Canvas.Left="40" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF801B1B" FontFamily="Comic Sans MS"/>
 
                 <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="15" Canvas.Top="279"  RenderTransformOrigin="0.5,0.5">
@@ -118,16 +118,16 @@
                 <Image x:Name="ImgShip4" Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20"
                        MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
 
-                <TextBlock Canvas.Left="165" TextWrapping="Wrap" Text="x 1 шт." Canvas.Top="25" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold"/>
-                <TextBlock Canvas.Left="358" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock Canvas.Left="527" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBlock Canvas.Left="655" TextWrapping="Wrap" Text="x 4 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TextBlockCounter4Len" Canvas.Left="165" TextWrapping="Wrap" Text="x 1 шт." Canvas.Top="25" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold"/>
+                <TextBlock x:Name="TextBlockCounter3Len" Canvas.Left="358" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TextBlockCounter2Len" Canvas.Left="527" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TextBlockCounter1Len" Canvas.Left="655" TextWrapping="Wrap" Text="x 4 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <Border x:Name="TextBlockHint" Canvas.Left="762" Margin="5" Padding="5" BorderThickness="1" BorderBrush="Green" Background="AntiqueWhite" CornerRadius="5">
                     <TextBlock  TextWrapping="Wrap" Height="90" Width="180" TextAlignment="Left" Foreground="#FF2C7D1C" Padding="5,5,5,5" FontStyle="Italic" FontWeight="Bold" >
     * Нажмите Правой кнопкой мыши, чтобы поменять ориентацию корабля. Левой, чтобы выбрать его для установки.
                     </TextBlock>
                 </Border>
-                
+
                 <Image x:Name="ImageHint" Canvas.Left="709" Canvas.Top="91" Width="60" Source="/Views/advice.png">
                 </Image>
             </Canvas>

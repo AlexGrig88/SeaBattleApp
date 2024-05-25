@@ -17,7 +17,11 @@
     <None Remove="Resources\Cursors\CursorShip3V.cur" />
     <None Remove="Resources\Cursors\CursorShip4H.cur" />
     <None Remove="Resources\Cursors\CursorShip4V.cur" />
+    <None Remove="Resources\Images\burning.png" />
+    <None Remove="Resources\Images\destroyed.png" />
+    <None Remove="Resources\Images\empty.png" />
     <None Remove="Resources\Images\gun5.jpg" />
+    <None Remove="Resources\Images\markIsAShip.png" />
     <None Remove="Resources\Images\Ship1.png" />
     <None Remove="Resources\Images\Ship2.png" />
     <None Remove="Resources\Images\Ship3.png" />
@@ -52,8 +56,20 @@
     <Resource Include="Resources\Cursors\CursorShip4H.cur">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\Images\burning.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\destroyed.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\empty.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\Images\gun5.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\markIsAShip.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Images\Ship1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

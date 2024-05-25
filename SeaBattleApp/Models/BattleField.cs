@@ -18,7 +18,7 @@ namespace SeaBattleApp.Models
         public const int MarkIsAShip = 5;             //  метка видимого корабля
         public static int MarkAShipInvisible => 6;      // метка невидимого корабля                                     
 
-        private bool _isItMyField;      // для выбора невидимого или видимого отображения корабля
+        public bool IsItMyField { get; init; }      // для выбора невидимого или видимого отображения корабля
         private int _rows;
         private int _columns;
 
@@ -51,7 +51,7 @@ namespace SeaBattleApp.Models
 
         public BattleField(bool isItMyField, int rows = 10, int columns = 10)
         {
-            _isItMyField = isItMyField;
+            IsItMyField = isItMyField;
             ShipsCounter = 10;
             ExpectedMapLengthByCounter = new Dictionary<int, int>() { { 1, 4 }, { 2, 3 }, { 3, 2 }, { 4, 1 } };
             CurrentMapLengthByCounter = new Dictionary<int, int>() { { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 } };
@@ -160,7 +160,7 @@ namespace SeaBattleApp.Models
             }
             for (int i = 0, j = 0; i < ship.Length && j < ship.Length;)
             {
-                Field[begCoord.Row + i, begCoord.Col + j] = _isItMyField ? MarkIsAShip : MarkAShipInvisible;
+                Field[begCoord.Row + i, begCoord.Col + j] = IsItMyField ? MarkIsAShip : MarkAShipInvisible;
                 if (ship.IsHorizontalOrientation) ++j;
                 else ++i;
             }
