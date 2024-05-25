@@ -189,9 +189,10 @@ namespace SeaBattleGUI
 			if (!isSuccess) {           // если выстрел был неудачным запускаем логику для срельбы компьютера
 				StatusBarText.Text = $"Игрок {game.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
 				ToggleShotVisible(false);
-				bool isTheWinner = false;
-				await Task.Delay(1000);
-				game.CompMove2(ref isTheWinner);
+				// bool isTheWinner = false;
+				// await Task.Delay(1000);
+				//game.CompMove2(ref isTheWinner);
+				bool isTheWinner = await game.CompMove2Async();
 				ToggleShotVisible(true);
 				if (isTheWinner) {
 					IsTheWinner = true;

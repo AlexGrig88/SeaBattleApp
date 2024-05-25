@@ -185,7 +185,55 @@ namespace SeaBattleApp
             } while (true);
         }
 
-        public void PlayerClientMove(ref bool isTheWinner)
+		public async Task<bool> CompMove2Async()
+		{
+			await Task.Delay(2000);
+			var isFirstShotInLoop = true;
+			do {
+				string selectedPosition = "";
+
+				selectedPosition = TheCompPlayer.ComputeMove2(isFirstShotInLoop);
+				WriteMessageForPlayerEvent?.Invoke($"Комп стреляет по позиции: {selectedPosition}");
+
+				bool IsDestroyedShip = false;
+				(bool isSuccess, Ship? ship) = TryShootAtTheTarget(Coordinate.Parse(selectedPosition), false, ref IsDestroyedShip);
+
+				TheCompPlayer.AllPositionsForOpponent.Remove(selectedPosition);  // выстрел произошёл, можно очистить позицию из списка всех позиций у компьютера
+
+				if (!isSuccess) {
+					WriteMessageForPlayerEvent?.Invoke("Компьютер промахнулся. Теперь ваш черед.");
+					break;
+				}
+
+				TheCompPlayer.TheMemory.PositionsInProcess.Add(selectedPosition); // успех выстрела, можно добавить в память компьютера данную розицию
+				if (!IsDestroyedShip) {
+					WriteMessageForPlayerEvent?.Invoke("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
+					await Task.Delay(2000);
+				}
+				else {
+					if (CurrentField.ShipsCounter == 0) {
+						WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
+						++Player1.DefeatCounter;
+						Player1.Score = 0;
+						return true;
+					}
+					WriteMessageForPlayerEvent?.Invoke("Плохи дела. Компьютер потопил ваш корабль. Думает.");
+					// надо сбросить память компьютера в начальное состояние
+					++TheCompPlayer.ShipLengthOpponentDict[ship?.Length ?? throw new ApplicationException("Ошибка! Проверяй логику!")];  // добавляем в память инфу о палубности потопленного корабля
+					TheCompPlayer.ClearUnsablePositions(ship, false);
+					TheCompPlayer.TheMemory.Reset();
+
+					// ComputerThinks();
+					await Task.Delay(2000);
+
+				}
+				isFirstShotInLoop = false;
+
+			} while (true);
+            return false;
+		}
+
+		public void PlayerClientMove(ref bool isTheWinner)
         {
             do {
                 string targetPosition = ReadValidPosition();
