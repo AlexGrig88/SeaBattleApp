@@ -45,6 +45,7 @@ namespace SeaBattleGUI
         private ShipImgOutline? CurrentShipImgOutline { get; set; }
         private List<Button> ButtonsCellsSelf;
         private List<Button> ButtonsCellsOpponent;
+		private bool IsTheWinner { get; set; }
 
 		private Dictionary<string, string> _imgsNames = new Dictionary<string, string>
 			{ {"ship", "markIsAShip.png" }, {"empty", "empty.png" }, {"burning", "burning.png" }, {"destroyed", "destroyed.png" } };
@@ -52,18 +53,25 @@ namespace SeaBattleGUI
 		public MainWindow()
         {
             InitializeComponent();
-            InitGameWindow();
+			StartingField.Visibility = Visibility.Visible;
+			PlayingField.Visibility = Visibility.Collapsed;
+			RadioBtnCompPlayer.IsChecked = true;
+
+			InitGameWindow();
+
 			_counterShipsOutline = 0;
             game.FieldStatusChangedEvent += HandleChangedFieldStatus;
+			game.WriteMessageForPlayerEvent += WriteLineToStatusBar;
 
 		}
 
+		private void WriteLineToStatusBar(string message) => StatusBarText.Text = message;
 
 		private void InitGameWindow()
         {
 
 			var lengthField = game.CurrentField.Rows;
-			RadioBtnCompPlayer.IsChecked = true;
+			
             ButtonsCellsSelf = new List<Button>();
             ButtonsCellsOpponent = new List<Button>();
 			Closing += MainWindow_Closing;
@@ -80,9 +88,29 @@ namespace SeaBattleGUI
             _shipsImgOutline.Add(new ShipImgOutline(ImgShip2.Name, 2, true, 3, ImgShip2));
             _shipsImgOutline.Add(new ShipImgOutline(ImgShip1.Name, 1, true, 4, ImgShip1));
 
-           
+			ImgShotSelf.Visibility = Visibility.Hidden;
+			ImgShotOpponent.Visibility = Visibility.Hidden;
+			TextBlockShotSelf.Visibility = Visibility.Hidden;
+			TextBlockShotOpponent.Visibility = Visibility.Hidden;
 
 		}
+
+		private void ToggleShotVisible(bool isSelfShot)
+		{
+			if (isSelfShot) {
+				ImgShotSelf.Visibility = Visibility.Visible;
+				TextBlockShotSelf.Visibility = Visibility.Visible;
+				ImgShotOpponent.Visibility = Visibility.Hidden;
+				TextBlockShotOpponent.Visibility = Visibility.Hidden;
+			}
+            else
+            {
+				ImgShotOpponent.Visibility =  Visibility.Visible;
+				TextBlockShotOpponent.Visibility =  Visibility.Visible;
+				ImgShotSelf.Visibility = Visibility.Hidden;
+				TextBlockShotSelf.Visibility = Visibility.Hidden;
+			}
+        }
 
 		private void FillStackCharacters(StackPanel stack, int length, Orientation orientation, int offsetLeft, int offsetRight)
         {
@@ -121,18 +149,72 @@ namespace SeaBattleGUI
 					Background = new SolidColorBrush(Color.FromRgb(242, 210, 177)),
 					BorderBrush = new SolidColorBrush(Color.FromRgb(176, 184, 164)),
 				};
-				btnCell.Click += ButtonCell_Click;
+				
                 if (startId == START_BUTTON_ID_SELF) {
-                    ButtonsCellsSelf.Add(btnCell);
-                }
+					btnCell.Click += ButtonCellSelf_Click;
+					ButtonsCellsSelf.Add(btnCell);
+				}
                 else {
-                    ButtonsCellsOpponent.Add(btnCell);
+					btnCell.Click += ButtonCellOpponent_Click;
+					ButtonsCellsOpponent.Add(btnCell);
                 }
 				grid.Children.Add(btnCell);
 			}
 		}
 
-		private void ButtonCell_Click(object sender, RoutedEventArgs e)
+		private async void ButtonCellOpponent_Click(object sender, RoutedEventArgs e)
+		{
+			Button thisButton = (Button)sender;
+			if (IsTheWinner) {
+				MessageBox.Show($"Игра завершена.");
+			}
+			else if (_counterShipsOutline < 10) {
+				MessageBox.Show($"Игрок {game.Player1.Username} ещё не расставил корабли.");
+			}
+			else {
+				HandleMovePlayer(thisButton);
+			}
+
+		}
+
+		private async void HandleMovePlayer(Button button)
+		{
+			int btnCoordinate = (int)button.Tag - START_BUTTON_ID_OPPONENT;     // сдвигаем, чтобы получить значение от 0 до 100
+
+			bool shipIsDestroyed = false;
+			bool isMyMove = true;
+			(bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(new Coordinate(btnCoordinate / 10, btnCoordinate % 10), isMyMove, ref shipIsDestroyed);
+			++game.Player1.Score;
+
+			if (!isSuccess) {           // если выстрел был неудачным запускаем логику для срельбы компьютера
+				StatusBarText.Text = $"Игрок {game.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
+				ToggleShotVisible(false);
+				bool isTheWinner = false;
+				await Task.Delay(1000);
+				game.CompMove2(ref isTheWinner);
+				ToggleShotVisible(true);
+				if (isTheWinner) {
+					IsTheWinner = true;
+					MessageBox.Show($"Игрок {game.Player1.Username}, вы проиграли.");
+				}
+				return;
+			}
+			
+			if (!shipIsDestroyed) {
+				StatusBarText.Text = $"Игрок {game.Player1.Username}, вы молодец, подбили корабль! Стреляйте ещё раз!!!";
+			}
+			else {
+				if (game.CurrentField.ShipsCounter == 0) {   // ещё раз проверяем, что кораблей не осталось на поле
+					MessageBox.Show($"Игрок {game.Player1.Username} ВЫ ЖЕ ПОБЕДИЛИ!!!! МОЛОДЕЦ!!!");
+					++game.Player1.VictoryCounter;
+					IsTheWinner = true;
+					return;
+				}
+				StatusBarText.Text = "УРА!!!!!!!!!!!!Корабль уничтожен!!!Стреляйте ещё раз!!!";
+			}
+		}
+
+		private void ButtonCellSelf_Click(object sender, RoutedEventArgs e)
 		{
 			if (CurrentShipImgOutline == null) {
 				if (_counterShipsOutline == 10) {
@@ -155,7 +237,6 @@ namespace SeaBattleGUI
 				return;
 			}
 			else {
-				MessageBox.Show("Успешная установка");
 				_counterShipsOutline++;
 				CurrentShipImgOutline.CounterDownShips--;
 				ChangeTextBlockCounter(CurrentShipImgOutline);
@@ -166,6 +247,7 @@ namespace SeaBattleGUI
 				Cursor = Cursors.Arrow;
 				if (_counterShipsOutline == 10) {
 					MessageBox.Show($"Все корабли установлены!");
+					ToggleShotVisible(true);
 				}
 			} 
 			
@@ -212,7 +294,7 @@ namespace SeaBattleGUI
 		private Image? GetImageShip(int[,] field, ref int i, ref int j)
 		{
 			Image shipImg = null;
-			if (field[i, j] == BattleField.MarkIsAShip) {
+			if (field[i, j] == BattleField.MarkIsAShip) {       //  || field[i, j] == BattleField.MarkAShipInvisible
 				shipImg = new Image { Source = new BitmapImage(new Uri($"{PREFIX_PATH}{_imgsNames["ship"]}", UriKind.Relative)) };
 			}
 			else if (field[i, j] == (int)BattleField.CellState.Empty) {
@@ -240,6 +322,17 @@ namespace SeaBattleGUI
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
+			game.Player1.Username = TextBoxPlayerName.Text;
+			if (RadioBtnCompPlayer.IsChecked == true) {
+				game.ModeGame = Game.Mode.SinglePlayer;
+				game.InitCompPlayer();
+/*				game.CurrentField = game.OpponentField;
+				HandleChangedFieldStatus(game);
+				game.CurrentField = game.MyField;*/
+			}
+			else {
+
+			}
             PlayingField.Visibility = Visibility.Visible;
             StartingField.Visibility = Visibility.Collapsed;
         }

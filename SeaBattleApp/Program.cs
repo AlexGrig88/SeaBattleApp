@@ -14,8 +14,9 @@ class Program
         // Добавить события
         game.FieldStatusChangedEvent += ShowGameBoardVer2;
         game.WriteMessageForPlayerEvent += Console.WriteLine;
+        game.DelayMoveCompEvent += ComputerThinks;
 
-        while (PlayNext()) { }
+		while (PlayNext()) { }
         Console.WriteLine("\n\t*** Конец игры ***\t\n");
     }
 
@@ -222,7 +223,16 @@ class Program
         }
     }
 
-    private static void ShowGameBoardVer2(Game game)
+	private static void ComputerThinks()
+	{
+		Console.WriteLine("Компьютер думает над следующим ходом...");
+		for (int i = 0; i < 30; i++) {
+			Console.Write(".");
+			Thread.Sleep(100);
+		}
+	}
+
+	private static void ShowGameBoardVer2(Game game)
     {
         string spaceBetweenFields = new String(' ', game.MyField.Columns - 2);
         WriteLineColor("\n\tВаше поле:" + spaceBetweenFields + spaceBetweenFields + "Противника поле:", ConsoleColor.Cyan);

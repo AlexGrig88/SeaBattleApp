@@ -18,7 +18,7 @@
         </Menu>
         <StatusBar Height="30" DockPanel.Dock="Bottom" Foreground="#FFF3EEEE" FontSize="14" Background="Black">
             <StatusBarItem Background="#FF142654">
-                <TextBlock>
+                <TextBlock x:Name="StatusBarText">
                     Расставляйте клорабли на поле.
                 </TextBlock>
             </StatusBarItem>
@@ -32,8 +32,8 @@
             <Label HorizontalAlignment="Center" FontSize="20" Margin="10 0 10 0">
                 Введите свой никнейм
             </Label>
-            <TextBox HorizontalAlignment="Center" FontSize="20" Margin="0 0 10 0" Width="280">
-
+            <TextBox x:Name="TextBoxPlayerName" HorizontalAlignment="Center" FontSize="20" Margin="0 0 10 0" Width="280">
+                Anon
             </TextBox>
             <Label HorizontalAlignment="Center" FontSize="20" Margin="10 40 10 0">
                 Выбирите режим игры
@@ -54,7 +54,7 @@
                 </StackPanel>
             </StackPanel>
 
-            <Button Padding="5" Margin="0 80 0 0" Width="100" FontSize="20" Click="ButtonStart_Click" Cursor="Hand">
+            <Button  Click="ButtonStart_Click" Padding="5" Margin="0 80 0 0" Width="100" FontSize="20" Cursor="Hand">
                 Играть
             </Button>
         </StackPanel>
@@ -69,7 +69,7 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Canvas x:Name="SelfField" Grid.Row="0" Grid.Column="0" Background="Transparent" MouseLeftButtonDown="SelfField_MouseLeftButtonDown">
-                <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="400" Canvas.Top="279"></Image>
+                <Image x:Name="ImgShotSelf" Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="400" Canvas.Top="279"></Image>
 
                 <Label FontSize="18" FontWeight="SemiBold" Canvas.Top="30" Canvas.Left="195">Моё Поле</Label>
                 <StackPanel x:Name="LineLettersSelf" Canvas.Top="70" Canvas.Left="100" Orientation="Horizontal">
@@ -83,14 +83,16 @@
                 <UniformGrid x:Name="GridFieldSelf" Canvas.Top="100" Canvas.Left="100"  Rows="10" Columns="10">
                     <!-- <Button Width="30" Height="30" Background="#FFA96666" BorderBrush="#FFACB7A9">1</Button> -->
                 </UniformGrid>
-                <TextBlock Canvas.Left="420" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF156721" FontFamily="Comic Sans MS"/>
+                <TextBlock x:Name="TextBlockShotSelf" Canvas.Left="420" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18"
+                           FontWeight="Bold" Foreground="#FF156721" FontFamily="Comic Sans MS"/>
             </Canvas>
 
 
             <Canvas Grid.Row="0" Grid.Column="1" Background="Transparent" MouseLeftButtonDown="OpponentField_MouseLeftButtonDown">
-                <TextBlock Canvas.Left="40" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold" Foreground="#FF801B1B" FontFamily="Comic Sans MS"/>
+                <TextBlock x:Name="TextBlockShotOpponent" Canvas.Left="40" TextWrapping="Wrap" Text="Пли!" Canvas.Top="250" FontSize="18" FontWeight="Bold"
+                           Foreground="#FF801B1B" FontFamily="Comic Sans MS"/>
 
-                <Image Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="15" Canvas.Top="279"  RenderTransformOrigin="0.5,0.5">
+                <Image x:Name="ImgShotOpponent" Source="\Resources\Images\gun5.jpg" MaxWidth="90" Canvas.Left="15" Canvas.Top="279"  RenderTransformOrigin="0.5,0.5">
                     <Image.RenderTransform>
                         <ScaleTransform ScaleX="-1"/>
                     </Image.RenderTransform>

@@ -23,6 +23,7 @@ namespace SeaBattleApp
 
         public event Action<Game> FieldStatusChangedEvent;
         public event Action<string> WriteMessageForPlayerEvent;
+        public event Action DelayMoveCompEvent;
 
         public static Regex regexValidPosition = new Regex(@"^([1-9]|10)[А-ЕЖЗИК]$");
 
@@ -33,7 +34,7 @@ namespace SeaBattleApp
         public string Greeting => "Добро пожаловать на игру \"Морской бой!\"";
         public BattleField MyField { get; private set; }
         public BattleField OpponentField { get; private set; }
-        public BattleField CurrentField { get; private set; }
+        public BattleField CurrentField { get; set; }
         public CompPlayer TheCompPlayer { get; private set; }
         public Player Player1 { get; set; }
 
@@ -134,9 +135,10 @@ namespace SeaBattleApp
 
         public void CompMove2(ref bool isTheWinner)
         {
-            //WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
-            ComputerThinks();
-            var isFirstShotInLoop = true;
+			//WriteMessageForPlayerEvent?.Invoke("Вы не попали. Стреляет компьютер.");
+			//ComputerThinks();
+			DelayMoveCompEvent?.Invoke();
+			var isFirstShotInLoop = true;
             do {
                 string selectedPosition = "";
 
@@ -157,8 +159,9 @@ namespace SeaBattleApp
                 if (!IsDestroyedShip) {
                     WriteMessageForPlayerEvent?.Invoke("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
 
-                    ComputerThinks();
-                }
+					// ComputerThinks();
+					DelayMoveCompEvent?.Invoke();
+				}
                 else {
                     if (CurrentField.ShipsCounter == 0) {
                         WriteMessageForPlayerEvent?.Invoke("Увы! Вы проиграли, у вас не осталось ни одного корабля.");
@@ -173,23 +176,13 @@ namespace SeaBattleApp
                     TheCompPlayer.ClearUnsablePositions(ship, false);
                     TheCompPlayer.TheMemory.Reset();
 
-                    ComputerThinks();
-                    
-                }
+					// ComputerThinks();
+					DelayMoveCompEvent?.Invoke();
+
+				}
                 isFirstShotInLoop = false;
 
             } while (true);
-        }
-
-        private void ComputerThinks()
-        {
-            Console.WriteLine("\nНе спеши, думаю.");
-            for (int i = 0; i < 30; i++)
-            {
-                Console.Write(".");
-                Thread.Sleep(3);
-            }
-            Console.WriteLine();
         }
 
         public void PlayerClientMove(ref bool isTheWinner)
