@@ -18,6 +18,6 @@
 \
 Самыми уязвимыми являются линкор и торпедный катер: первый из-за крупных размеров, в связи с чем его сравнительно легко найти, а второй из-за того, что топится с одного удара, хотя его найти достаточно сложно.\
 
-![Изображение](https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/BattleShip_Russian.svg/1024px-BattleShip_Russian.svg.png)
-/
-/
+![screenshot](SeaBattleConsole.PNG)\
+![screenshot](SeaBattleWpf.PNG)
+
