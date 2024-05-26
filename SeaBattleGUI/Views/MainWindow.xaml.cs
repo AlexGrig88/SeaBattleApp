@@ -46,6 +46,7 @@ namespace SeaBattleGUI
         private List<Button> ButtonsCellsSelf;
         private List<Button> ButtonsCellsOpponent;
 		private bool IsTheWinner { get; set; }
+		private bool CanMove {  get; set; }
 
 		private Dictionary<string, string> _imgsNames = new Dictionary<string, string>
 			{ {"ship", "markIsAShip.png" }, {"empty", "empty.png" }, {"burning", "burning.png" }, {"destroyed", "destroyed.png" } };
@@ -57,7 +58,7 @@ namespace SeaBattleGUI
 			PlayingField.Visibility = Visibility.Collapsed;
 			RadioBtnCompPlayer.IsChecked = true;
 			StackPanelTablo.Visibility = Visibility.Collapsed;
-
+			CanMove = true;
 			InitGameWindow();
 
 			_counterShipsOutline = 0;
@@ -130,7 +131,8 @@ namespace SeaBattleGUI
                     {
                         FontSize = 18,
                         Text = new string((char)(firstChar + i >= 'Й' ? firstChar + i + 1 : firstChar + i), 1),
-                        Margin = new Thickness(9, 0, 10, 0)
+                        Margin = new Thickness(9, 0, 10, 0),
+						FontWeight = FontWeights.SemiBold
                     };
                     stack.Children.Add(textBlock);
                 }
@@ -139,8 +141,9 @@ namespace SeaBattleGUI
                     {
                         FontSize = 18,
                         Text = (i + 1).ToString(),
-                        Margin = new Thickness(0, 3, 0, 3)
-                    };
+                        Margin = new Thickness(0, 3, 0, 3),
+						FontWeight = FontWeights.SemiBold
+					};
                     stack.Children.Add(textBlock);
                 }
             }
@@ -179,6 +182,9 @@ namespace SeaBattleGUI
 			else if (_counterShipsOutline < 10) {
 				MessageBox.Show($"Игрок {game.Player1.Username} ещё не расставил корабли.");
 			}
+			else if (!CanMove) {
+				MessageBox.Show("Ходит оппонент. Ожидайте!");
+			}
 			else {
 				HandleMovePlayer(thisButton);
 			}
@@ -202,12 +208,14 @@ namespace SeaBattleGUI
 			if (!isSuccess) {           // если выстрел был неудачным запускаем логику для срельбы компьютера
 				StatusBarText.Text = $"Игрок {game.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
 				ToggleShotVisible(false);
+				CanMove = false;
 				bool isTheWinner = await game.CompMove2Async();
 				ToggleShotVisible(true);
 				if (isTheWinner) {
 					IsTheWinner = true;
 					MessageBox.Show($"Игрок {game.Player1.Username}, вы проиграли.");
 				}
+				CanMove = true;
 				return;
 			}
 			
@@ -326,12 +334,12 @@ namespace SeaBattleGUI
 
 		private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
-            /*string msg = "Вы действительно хотите закрыть программу?";
-            var result = MessageBox.Show(msg, Title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.No) {
-                e.Cancel = true;
-            }*/
-        }
+			string msg = "Вы действительно хотите закрыть программу?";
+			var result = MessageBox.Show(msg, Title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+			if (result == MessageBoxResult.No) {
+				e.Cancel = true;
+			}
+		}
 
         private void MenuExit_Close(object sender, RoutedEventArgs e) => Close();
 
@@ -400,6 +408,12 @@ namespace SeaBattleGUI
 
 		private void OpponentField_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) => Cursor = Cursors.Arrow;
 
+		private void ButtonStatistics_Click(object sender, RoutedEventArgs e)
+		{
+			throw new NotImplementedException();
+		}
+
+		private void ButtonExit_Click(object sender, RoutedEventArgs e) => Close();
 	}
 
 	class ShipImgOutline
