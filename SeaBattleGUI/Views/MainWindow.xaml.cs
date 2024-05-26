@@ -56,16 +56,24 @@ namespace SeaBattleGUI
 			StartingField.Visibility = Visibility.Visible;
 			PlayingField.Visibility = Visibility.Collapsed;
 			RadioBtnCompPlayer.IsChecked = true;
+			StackPanelTablo.Visibility = Visibility.Collapsed;
 
 			InitGameWindow();
 
 			_counterShipsOutline = 0;
             game.FieldStatusChangedEvent += HandleChangedFieldStatus;
-			game.WriteMessageForPlayerEvent += WriteLineToStatusBar;
+			game.WriteMessageForPlayerEvent += WriteLineToStatusBarOrTablo;
 
 		}
 
-		private void WriteLineToStatusBar(string message) => StatusBarText.Text = message;
+		private void WriteLineToStatusBarOrTablo(string message)
+		{
+			if (message.Contains("по позиции")) {
+				TextBlockMoveOpponent.Text = message.Substring(message.IndexOf(": ") + 2);
+				TextBlockMoveSelf.Text = "";
+			}
+			StatusBarText.Text = message;
+		}
 
 		private void InitGameWindow()
         {
@@ -183,15 +191,17 @@ namespace SeaBattleGUI
 
 			bool shipIsDestroyed = false;
 			bool isMyMove = true;
-			(bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(new Coordinate(btnCoordinate / 10, btnCoordinate % 10), isMyMove, ref shipIsDestroyed);
+			Coordinate target = new Coordinate(btnCoordinate / 10, btnCoordinate % 10);
+
+			TextBlockMoveSelf.Text = target.GetPosition().ToString();
+			TextBlockMoveOpponent.Text = "";
+
+			(bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(target, isMyMove, ref shipIsDestroyed);
 			++game.Player1.Score;
 
 			if (!isSuccess) {           // если выстрел был неудачным запускаем логику для срельбы компьютера
 				StatusBarText.Text = $"Игрок {game.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
 				ToggleShotVisible(false);
-				// bool isTheWinner = false;
-				// await Task.Delay(1000);
-				//game.CompMove2(ref isTheWinner);
 				bool isTheWinner = await game.CompMove2Async();
 				ToggleShotVisible(true);
 				if (isTheWinner) {
@@ -249,6 +259,10 @@ namespace SeaBattleGUI
 				if (_counterShipsOutline == 10) {
 					MessageBox.Show($"Все корабли установлены!");
 					ToggleShotVisible(true);
+					TextBlockMoveSelf.Text = "";
+					TextBlockMoveOpponent.Text = "";
+					StackPanelTablo.Visibility = Visibility.Visible;
+
 				}
 			} 
 			

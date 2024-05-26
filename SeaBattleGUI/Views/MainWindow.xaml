@@ -110,7 +110,7 @@
             </Canvas>
             <Canvas Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
 
-                <Button Click="ButtonPrevPage_Click" >Previous</Button>
+                <Button Click="ButtonPrevPage_Click" >Prev</Button>
                 <Image x:Name="ImgShip1" Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"
                        MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
                 <Image x:Name="ImgShip2" Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="462" Canvas.Top="20"
@@ -132,6 +132,19 @@
 
                 <Image x:Name="ImageHint" Canvas.Left="709" Canvas.Top="91" Width="60" Source="/Views/advice.png">
                 </Image>
+
+
+                <StackPanel x:Name="StackPanelTablo"  Canvas.Left="385" Height="60" Width="240" Orientation="Horizontal">
+                    <Border Canvas.Left="434" Padding="5" BorderThickness="1" Width="56" Height="40" BorderBrush="Green" 
+                        Background="#FF1E0846" CornerRadius="3" Canvas.Top="67" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60 0 0 0">
+                        <TextBlock x:Name="TextBlockMoveSelf" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Foreground="#FF19D047">4 А</TextBlock>
+                    </Border>
+
+                    <Border Canvas.Left="500" Padding="5" BorderThickness="1" Width="56" Height="40" BorderBrush="Green" 
+                        Background="#FF1E0846" CornerRadius="3" Canvas.Top="67" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <TextBlock x:Name="TextBlockMoveOpponent" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Foreground="#FFF33131">8 Ж</TextBlock>
+                    </Border>
+                </StackPanel>
             </Canvas>
         </Grid>
     </DockPanel>

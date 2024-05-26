@@ -222,8 +222,6 @@ namespace SeaBattleApp
 					++TheCompPlayer.ShipLengthOpponentDict[ship?.Length ?? throw new ApplicationException("Ошибка! Проверяй логику!")];  // добавляем в память инфу о палубности потопленного корабля
 					TheCompPlayer.ClearUnsablePositions(ship, false);
 					TheCompPlayer.TheMemory.Reset();
-
-					// ComputerThinks();
 					await Task.Delay(2000);
 
 				}
