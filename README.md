@@ -19,5 +19,7 @@
 Самыми уязвимыми являются линкор и торпедный катер: первый из-за крупных размеров, в связи с чем его сравнительно легко найти, а второй из-за того, что топится с одного удара, хотя его найти достаточно сложно.\
 
 ![screenshot](SeaBattleConsole.PNG)\
-![screenshot](SeaBattleWPF.PNG)
+![screenshot](SeaBattleWPF1.PNG)\
+![screenshot](SeaBattleWPF2.PNG)\
+![screenshot](SeaBattleWPF3.PNG)
 
