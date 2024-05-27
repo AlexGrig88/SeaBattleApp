@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SeaBattleGUI.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="UserControlStats">
     <StackPanel>
         <Button Click="ButtonReturnFromStatistics_Click" FontSize="16" Background="#FFD886A4" Foreground="#FF040000" Padding="5,5,5,7" Cursor="Hand" FontWeight="SemiBold" BorderBrush="#FF7F5B5B">Вернуться назад</Button>
         <RichTextBox x:Name="RichTextBoxStat" IsReadOnly="True">

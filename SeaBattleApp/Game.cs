@@ -185,9 +185,9 @@ namespace SeaBattleApp
             } while (true);
         }
 
-		public async Task<bool> CompMove2Async()
+		public async Task<bool> CompMove2Async(int delay)
 		{
-			await Task.Delay(2000);
+			await Task.Delay(delay);
 			var isFirstShotInLoop = true;
 			do {
 				string selectedPosition = "";
@@ -208,7 +208,7 @@ namespace SeaBattleApp
 				TheCompPlayer.TheMemory.PositionsInProcess.Add(selectedPosition); // успех выстрела, можно добавить в память компьютера данную розицию
 				if (!IsDestroyedShip) {
 					WriteMessageForPlayerEvent?.Invoke("Соперник попал в ваш корабль. Думает куда дальше выстрелить...");
-					await Task.Delay(2000);
+					await Task.Delay(delay);
 				}
 				else {
 					if (CurrentField.ShipsCounter == 0) {
@@ -222,7 +222,7 @@ namespace SeaBattleApp
 					++TheCompPlayer.ShipLengthOpponentDict[ship?.Length ?? throw new ApplicationException("Ошибка! Проверяй логику!")];  // добавляем в память инфу о палубности потопленного корабля
 					TheCompPlayer.ClearUnsablePositions(ship, false);
 					TheCompPlayer.TheMemory.Reset();
-					await Task.Delay(2000);
+					await Task.Delay(delay);
 
 				}
 				isFirstShotInLoop = false;

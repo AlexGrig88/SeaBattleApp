@@ -7,15 +7,19 @@ using System.Windows.Input;
 using System.Windows.Media;
 using SeaBattleApp.Models;
 using System.Windows.Media.Imaging;
+using System.Windows.Interop;
+using SeaBattleGUI.Views;
+using System.IO;
+using System.Windows.Documents;
 
 
 namespace SeaBattleGUI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
-    {
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
+	{
 		private const string ABOUT = @"Классический морской бой.
 Правила размещения кораблей (флота):
 Игровое поле — обычно квадрат 10×10 у каждого игрока, на котором размещается флот кораблей. Горизонтали обычно нумеруются сверху вниз, а вертикали помечаются буквами слева направо. При этом используются буквы русского алфавита от «А» до «К» (буквы «Ё» и «Й» обычно пропускаются). Размещаются:
@@ -34,35 +38,35 @@ namespace SeaBattleGUI
 Самыми уязвимыми являются линкор и торпедный катер: первый из-за крупных размеров, в связи с чем его сравнительно легко найти, а второй из-за того, что топится с одного удара, хотя его найти достаточно сложно.";
 		private const string PREFIX_PATH = "\\Resources\\Images\\";
 		private static int START_BUTTON_ID_SELF = 0;
-        private static int START_BUTTON_ID_OPPONENT = 100;
-        public Game TheGame { get; private set; } = ((App)Application.Current).TheGame;
+		private static int START_BUTTON_ID_OPPONENT = 100;
+		public Game TheGame { get; private set; } = ((App)Application.Current).TheGame;
 
 		private RotateTransform Rotate90 => new RotateTransform(90);
 		private RotateTransform Rotate0 => new RotateTransform(0);
-        private List<ShipImgOutline> _shipsImgOutline;
+		private List<ShipImgOutline> _shipsImgOutline;
 		private int _counterShipsOutline;
 
-        private ShipImgOutline? CurrentShipImgOutline { get; set; }
-        private List<Button> ButtonsCellsSelf;
-        private List<Button> ButtonsCellsOpponent;
+		private ShipImgOutline? CurrentShipImgOutline { get; set; }
+		private List<Button> ButtonsCellsSelf;
+		private List<Button> ButtonsCellsOpponent;
 		private bool IsTheWinner { get; set; }
-		private bool CanMove {  get; set; }
+		private bool CanMove { get; set; }
 
 		private Dictionary<string, string> _imgsNames = new Dictionary<string, string>
 			{ {"ship", "markIsAShip.png" }, {"empty", "empty.png" }, {"burning", "burning.png" }, {"destroyed", "destroyed.png" } };
 
 		public MainWindow()
-        {
-            InitializeComponent();
+		{
+			InitializeComponent();
 			StartingField.Visibility = Visibility.Visible;
 			PlayingField.Visibility = Visibility.Collapsed;
 			RadioBtnCompPlayer.IsChecked = true;
 			StackPanelTablo.Visibility = Visibility.Collapsed;
-			CanMove = true;
+			CanMove = true;		// Хожу первым
 			InitGameWindow();
 
 			_counterShipsOutline = 0;
-            TheGame.FieldStatusChangedEvent += HandleChangedFieldStatus;
+			TheGame.FieldStatusChangedEvent += HandleChangedFieldStatus;
 			TheGame.WriteMessageForPlayerEvent += WriteLineToStatusBarOrTablo;
 
 		}
@@ -77,12 +81,12 @@ namespace SeaBattleGUI
 		}
 
 		private void InitGameWindow()
-        {
+		{
 
 			var lengthField = TheGame.CurrentField.Rows;
-			
-            ButtonsCellsSelf = new List<Button>();
-            ButtonsCellsOpponent = new List<Button>();
+
+			ButtonsCellsSelf = new List<Button>();
+			ButtonsCellsOpponent = new List<Button>();
 			Closing += MainWindow_Closing;
 			GenerateButtonsCells(GridFieldSelf, lengthField, START_BUTTON_ID_SELF);
 			GenerateButtonsCells(GridFieldOpponent, lengthField, START_BUTTON_ID_OPPONENT);
@@ -92,16 +96,50 @@ namespace SeaBattleGUI
 			FillStackCharacters(LineNumbersOpponent, lengthField, Orientation.Vertical, 415, 102);
 
 			_shipsImgOutline = new List<ShipImgOutline>();
-            _shipsImgOutline.Add(new ShipImgOutline(ImgShip4.Name, 4, true, 1, ImgShip4));
-            _shipsImgOutline.Add(new ShipImgOutline(ImgShip3.Name, 3, true, 2, ImgShip3));
-            _shipsImgOutline.Add(new ShipImgOutline(ImgShip2.Name, 2, true, 3, ImgShip2));
-            _shipsImgOutline.Add(new ShipImgOutline(ImgShip1.Name, 1, true, 4, ImgShip1));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip4.Name, 4, true, 1, ImgShip4));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip3.Name, 3, true, 2, ImgShip3));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip2.Name, 2, true, 3, ImgShip2));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip1.Name, 1, true, 4, ImgShip1));
 
 			ImgShotSelf.Visibility = Visibility.Hidden;
 			ImgShotOpponent.Visibility = Visibility.Hidden;
 			TextBlockShotSelf.Visibility = Visibility.Hidden;
 			TextBlockShotOpponent.Visibility = Visibility.Hidden;
 
+		}
+
+		private void ResetViewStatus()
+		{
+			IsTheWinner = false;
+			_shipsImgOutline = new List<ShipImgOutline>();
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip4.Name, 4, true, 1, ImgShip4));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip3.Name, 3, true, 2, ImgShip3));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip2.Name, 2, true, 3, ImgShip2));
+			_shipsImgOutline.Add(new ShipImgOutline(ImgShip1.Name, 1, true, 4, ImgShip1));
+			CurrentShipImgOutline = null;
+			CanMove = true;     // Хожу первым
+			_counterShipsOutline = 0;
+            foreach (var btn in ButtonsCellsSelf)
+            {
+				btn.Content = null;
+			}
+			foreach (var btn in ButtonsCellsOpponent) {
+				btn.Content = null;
+			}
+			ImgShotSelf.Visibility = Visibility.Hidden;
+			ImgShotOpponent.Visibility= Visibility.Hidden;
+			TextBlockMoveSelf.Text = "";
+			TextBlockMoveOpponent.Text = "";
+			TextBlockShotSelf.Visibility= Visibility.Hidden;
+			TextBlockShotOpponent.Visibility = Visibility.Hidden;
+			StackPanelTablo.Visibility = Visibility.Collapsed;
+			ImgShip4.Visibility = Visibility.Visible;
+			ImgShip3.Visibility = Visibility.Visible;
+			ImgShip2.Visibility = Visibility.Visible;
+			ImgShip1.Visibility = Visibility.Visible;
+			foreach (var shipImgOut in _shipsImgOutline) {
+				ChangeTextBlockCounter(shipImgOut);
+			}
 		}
 
 		private void ToggleShotVisible(bool isSelfShot)
@@ -112,42 +150,40 @@ namespace SeaBattleGUI
 				ImgShotOpponent.Visibility = Visibility.Hidden;
 				TextBlockShotOpponent.Visibility = Visibility.Hidden;
 			}
-            else
-            {
-				ImgShotOpponent.Visibility =  Visibility.Visible;
-				TextBlockShotOpponent.Visibility =  Visibility.Visible;
+			else {
+				ImgShotOpponent.Visibility = Visibility.Visible;
+				TextBlockShotOpponent.Visibility = Visibility.Visible;
 				ImgShotSelf.Visibility = Visibility.Hidden;
 				TextBlockShotSelf.Visibility = Visibility.Hidden;
 			}
-        }
+		}
 
 		private void FillStackCharacters(StackPanel stack, int length, Orientation orientation, int offsetLeft, int offsetRight)
-        {
-            char firstChar = 'А';
-            for (int i = 0; i < length; i++)
-            {
-                if (orientation == Orientation.Horizontal) {
-                    var textBlock = new TextBlock
-                    {
-                        FontSize = 18,
-                        Text = new string((char)(firstChar + i >= 'Й' ? firstChar + i + 1 : firstChar + i), 1),
-                        Margin = new Thickness(9, 0, 10, 0),
-						FontWeight = FontWeights.SemiBold
-                    };
-                    stack.Children.Add(textBlock);
-                }
-                else {
-                    var textBlock = new TextBlock
-                    {
-                        FontSize = 18,
-                        Text = (i + 1).ToString(),
-                        Margin = new Thickness(0, 3, 0, 3),
+		{
+			char firstChar = 'А';
+			for (int i = 0; i < length; i++) {
+				if (orientation == Orientation.Horizontal) {
+					var textBlock = new TextBlock
+					{
+						FontSize = 18,
+						Text = new string((char)(firstChar + i >= 'Й' ? firstChar + i + 1 : firstChar + i), 1),
+						Margin = new Thickness(9, 0, 10, 0),
 						FontWeight = FontWeights.SemiBold
 					};
-                    stack.Children.Add(textBlock);
-                }
-            }
-        }
+					stack.Children.Add(textBlock);
+				}
+				else {
+					var textBlock = new TextBlock
+					{
+						FontSize = 18,
+						Text = (i + 1).ToString(),
+						Margin = new Thickness(0, 3, 0, 3),
+						FontWeight = FontWeights.SemiBold
+					};
+					stack.Children.Add(textBlock);
+				}
+			}
+		}
 
 		private void GenerateButtonsCells(UniformGrid grid, int length, int startId)
 		{
@@ -160,15 +196,15 @@ namespace SeaBattleGUI
 					Background = new SolidColorBrush(Color.FromRgb(242, 210, 177)),
 					BorderBrush = new SolidColorBrush(Color.FromRgb(176, 184, 164)),
 				};
-				
-                if (startId == START_BUTTON_ID_SELF) {
+
+				if (startId == START_BUTTON_ID_SELF) {
 					btnCell.Click += ButtonCellSelf_Click;
 					ButtonsCellsSelf.Add(btnCell);
 				}
-                else {
+				else {
 					btnCell.Click += ButtonCellOpponent_Click;
 					ButtonsCellsOpponent.Add(btnCell);
-                }
+				}
 				grid.Children.Add(btnCell);
 			}
 		}
@@ -209,27 +245,72 @@ namespace SeaBattleGUI
 				StatusBarText.Text = $"Игрок {TheGame.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
 				ToggleShotVisible(false);
 				CanMove = false;
-				bool isTheWinner = await TheGame.CompMove2Async();
+				bool isTheWinner = await TheGame.CompMove2Async(100);
 				ToggleShotVisible(true);
 				if (isTheWinner) {
 					IsTheWinner = true;
-					MessageBox.Show($"Игрок {TheGame.Player1.Username}, вы проиграли.");
+					var result = MessageBox.Show($"Игрок {TheGame.Player1.Username}, вы проиграли. Хотите сыграть ещё раз?", "Game Over", MessageBoxButton.YesNo, MessageBoxImage.Question);
+					HandleGameOver(result);
 				}
 				CanMove = true;
 				return;
 			}
-			
+
 			if (!shipIsDestroyed) {
 				StatusBarText.Text = $"Игрок {TheGame.Player1.Username}, вы молодец, подбили корабль! Стреляйте ещё раз!!!";
 			}
 			else {
 				if (TheGame.CurrentField.ShipsCounter == 0) {   // ещё раз проверяем, что кораблей не осталось на поле
-					MessageBox.Show($"Игрок {TheGame.Player1.Username} ВЫ ЖЕ ПОБЕДИЛИ!!!! МОЛОДЕЦ!!!");
+					var result = MessageBox.Show($"Игрок {TheGame.Player1.Username} ВЫ ЖЕ ПОБЕДИЛИ! МОЛОДЕЦ! Хотите сыграть ещё раз?", "Game Over", MessageBoxButton.YesNo, MessageBoxImage.Question);
 					++TheGame.Player1.VictoryCounter;
 					IsTheWinner = true;
+					HandleGameOver(result);
 					return;
 				}
 				StatusBarText.Text = "УРА!!!!!!!!!!!!Корабль уничтожен!!!Стреляйте ещё раз!!!";
+			}
+		}
+
+		private void HandleGameOver(MessageBoxResult result)
+		{
+			TheGame.SaveOrUpdatePlayerStatistics();
+			UpdateUserControlStatistics();
+			TheGame.ResetGameStatus();
+			ResetViewStatus();
+			if (result == MessageBoxResult.Yes) {
+				if (TheGame.ModeGame == Game.Mode.SinglePlayer) {
+					TheGame.InitCompPlayer();
+				}
+				MessageBox.Show("Можете расставлять корабли");
+			}
+			else {
+				PlayingField.Visibility = Visibility.Collapsed;
+				StartingField.Visibility = Visibility.Visible;
+			}
+			
+		}
+
+		public void UpdateUserControlStatistics()
+		{
+			if (StatisticsControl.UserControlStats is StatisticsUserControl statControl) {
+				string[] filesPath;
+				try {
+					filesPath = Directory.GetFiles(TheGame.GetFullPathSaveGame());
+				}
+				catch (DirectoryNotFoundException ex) {
+					var paragraph = new Paragraph();
+					paragraph.Inlines.Add(new Run("Пока нет ни одной сохраненной игры."));
+					statControl.RichTextBoxStat.Document.Blocks.Add(paragraph);
+					statControl.RichTextBoxStat.Focus();
+					return;
+				}
+				statControl.RichTextBoxStat.Document.Blocks.Clear();
+				foreach (var file in filesPath) {
+					string text = File.ReadAllText(file) + $"\n{new string('=', 86)}";
+					var paragraph = new Paragraph(new Run(text));
+					statControl.RichTextBoxStat.Document.Blocks.Add(paragraph);
+				}
+				statControl.RichTextBoxStat.Focus();
 			}
 		}
 
@@ -270,7 +351,6 @@ namespace SeaBattleGUI
 					TextBlockMoveSelf.Text = "";
 					TextBlockMoveOpponent.Text = "";
 					StackPanelTablo.Visibility = Visibility.Visible;
-
 				}
 			} 
 			
@@ -411,6 +491,7 @@ namespace SeaBattleGUI
 
 		private void ButtonStatistics_Click(object sender, RoutedEventArgs e)
 		{
+			UpdateUserControlStatistics();
 			StartingField.Visibility = Visibility.Collapsed;
 			PlayingField.Visibility = Visibility.Collapsed;
 			StatisticsControl.Visibility = Visibility.Visible;
