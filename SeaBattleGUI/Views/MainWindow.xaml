@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeaBattleGUI"
+        xmlns:sc="clr-namespace:SeaBattleGUI.Views"
         mc:Ignorable="d"
         Title="Sea Battle Game" Height="720" Width="1000" ResizeMode="NoResize" Background="LightSteelBlue">
     <DockPanel LastChildFill="True">
@@ -28,6 +29,7 @@
             <StackPanel.Background>
                 <ImageBrush ImageSource="/Views/sea_battle_login.png" Opacity="0.1"/>
             </StackPanel.Background>
+
             <TextBlock FontSize="24" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0 80 0 60">Добро пожаловать в игру "Морской бой"</TextBlock>
             <Label HorizontalAlignment="Center" FontSize="20" Margin="10 0 10 0">
                 Введите свой никнейм
@@ -64,6 +66,8 @@
                 Выход
             </Button>
         </StackPanel>
+
+        <sc:StatisticsUserControl x:Name="StatisticsControl" Visibility="Collapsed"/>
 
         <Grid x:Name="PlayingField" Visibility="Visible">
             <Grid.RowDefinitions>
@@ -116,7 +120,6 @@
             </Canvas>
             <Canvas Grid.Row="1" Grid.ColumnSpan="2" Background="Transparent">
 
-                <Button Click="ButtonPrevPage_Click" >Prev</Button>
                 <Image x:Name="ImgShip1" Source="\Resources\Images\ship1.png" MaxWidth="30" Canvas.Left="620" Canvas.Top="20"
                        MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
                 <Image x:Name="ImgShip2" Source="\Resources\Images\ship2.png" MaxWidth="60" Canvas.Left="462" Canvas.Top="20"
@@ -137,6 +140,9 @@
                 </Border>
 
                 <Image x:Name="ImageHint" Canvas.Left="709" Canvas.Top="91" Width="60" Source="/Views/advice.png">
+                    <Image.OpacityMask>
+                        <ImageBrush ImageSource="/Views/advice.png"/>
+                    </Image.OpacityMask>
                 </Image>
 
 
@@ -153,5 +159,7 @@
                 </StackPanel>
             </Canvas>
         </Grid>
+
+        
     </DockPanel>
 </Window>

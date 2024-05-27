@@ -226,9 +226,9 @@ class Program
 	private static void ComputerThinks()
 	{
 		Console.WriteLine("Компьютер думает над следующим ходом...");
-		for (int i = 0; i < 30; i++) {
+		for (int i = 0; i < 20; i++) {
 			Console.Write(".");
-			Thread.Sleep(100);
+			Thread.Sleep(10);
 		}
 	}
 

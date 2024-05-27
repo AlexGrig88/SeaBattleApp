@@ -35,7 +35,7 @@ namespace SeaBattleGUI
 		private const string PREFIX_PATH = "\\Resources\\Images\\";
 		private static int START_BUTTON_ID_SELF = 0;
         private static int START_BUTTON_ID_OPPONENT = 100;
-        private Game game = ((App)Application.Current).TheGame;
+        public Game TheGame { get; private set; } = ((App)Application.Current).TheGame;
 
 		private RotateTransform Rotate90 => new RotateTransform(90);
 		private RotateTransform Rotate0 => new RotateTransform(0);
@@ -62,8 +62,8 @@ namespace SeaBattleGUI
 			InitGameWindow();
 
 			_counterShipsOutline = 0;
-            game.FieldStatusChangedEvent += HandleChangedFieldStatus;
-			game.WriteMessageForPlayerEvent += WriteLineToStatusBarOrTablo;
+            TheGame.FieldStatusChangedEvent += HandleChangedFieldStatus;
+			TheGame.WriteMessageForPlayerEvent += WriteLineToStatusBarOrTablo;
 
 		}
 
@@ -79,7 +79,7 @@ namespace SeaBattleGUI
 		private void InitGameWindow()
         {
 
-			var lengthField = game.CurrentField.Rows;
+			var lengthField = TheGame.CurrentField.Rows;
 			
             ButtonsCellsSelf = new List<Button>();
             ButtonsCellsOpponent = new List<Button>();
@@ -180,7 +180,7 @@ namespace SeaBattleGUI
 				MessageBox.Show($"Игра завершена.");
 			}
 			else if (_counterShipsOutline < 10) {
-				MessageBox.Show($"Игрок {game.Player1.Username} ещё не расставил корабли.");
+				MessageBox.Show($"Игрок {TheGame.Player1.Username} ещё не расставил корабли.");
 			}
 			else if (!CanMove) {
 				MessageBox.Show("Ходит оппонент. Ожидайте!");
@@ -202,30 +202,30 @@ namespace SeaBattleGUI
 			TextBlockMoveSelf.Text = target.GetPosition().ToString();
 			TextBlockMoveOpponent.Text = "";
 
-			(bool isSuccess, Ship? ship) = game.TryShootAtTheTarget(target, isMyMove, ref shipIsDestroyed);
-			++game.Player1.Score;
+			(bool isSuccess, Ship? ship) = TheGame.TryShootAtTheTarget(target, isMyMove, ref shipIsDestroyed);
+			++TheGame.Player1.Score;
 
 			if (!isSuccess) {           // если выстрел был неудачным запускаем логику для срельбы компьютера
-				StatusBarText.Text = $"Игрок {game.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
+				StatusBarText.Text = $"Игрок {TheGame.Player1.Username}, Вы промахнулись. Ход переходит к соперникку.";
 				ToggleShotVisible(false);
 				CanMove = false;
-				bool isTheWinner = await game.CompMove2Async();
+				bool isTheWinner = await TheGame.CompMove2Async();
 				ToggleShotVisible(true);
 				if (isTheWinner) {
 					IsTheWinner = true;
-					MessageBox.Show($"Игрок {game.Player1.Username}, вы проиграли.");
+					MessageBox.Show($"Игрок {TheGame.Player1.Username}, вы проиграли.");
 				}
 				CanMove = true;
 				return;
 			}
 			
 			if (!shipIsDestroyed) {
-				StatusBarText.Text = $"Игрок {game.Player1.Username}, вы молодец, подбили корабль! Стреляйте ещё раз!!!";
+				StatusBarText.Text = $"Игрок {TheGame.Player1.Username}, вы молодец, подбили корабль! Стреляйте ещё раз!!!";
 			}
 			else {
-				if (game.CurrentField.ShipsCounter == 0) {   // ещё раз проверяем, что кораблей не осталось на поле
-					MessageBox.Show($"Игрок {game.Player1.Username} ВЫ ЖЕ ПОБЕДИЛИ!!!! МОЛОДЕЦ!!!");
-					++game.Player1.VictoryCounter;
+				if (TheGame.CurrentField.ShipsCounter == 0) {   // ещё раз проверяем, что кораблей не осталось на поле
+					MessageBox.Show($"Игрок {TheGame.Player1.Username} ВЫ ЖЕ ПОБЕДИЛИ!!!! МОЛОДЕЦ!!!");
+					++TheGame.Player1.VictoryCounter;
 					IsTheWinner = true;
 					return;
 				}
@@ -247,7 +247,7 @@ namespace SeaBattleGUI
 			int tag = (int)thisButton.Tag;
 
 			Ship targetShip = new Ship(CurrentShipImgOutline.Length, CurrentShipImgOutline.IsHorizontal);
-			(bool, string) resultWithMsg = game.TryAddTheShipOnTheField(targetShip, new Coordinate(tag / 10, tag % 10));
+			(bool, string) resultWithMsg = TheGame.TryAddTheShipOnTheField(targetShip, new Coordinate(tag / 10, tag % 10));
 
 			if (!resultWithMsg.Item1) {     // если валидация прошла неудачно
 				MessageBox.Show($"{resultWithMsg.Item2}. Попробуйте ещё раз!");
@@ -343,23 +343,6 @@ namespace SeaBattleGUI
 
         private void MenuExit_Close(object sender, RoutedEventArgs e) => Close();
 
-        private void ButtonStart_Click(object sender, RoutedEventArgs e)
-        {
-			game.Player1.Username = TextBoxPlayerName.Text;
-			if (RadioBtnCompPlayer.IsChecked == true) {
-				game.ModeGame = Game.Mode.SinglePlayer;
-				game.InitCompPlayer();
-/*				game.CurrentField = game.OpponentField;
-				HandleChangedFieldStatus(game);
-				game.CurrentField = game.MyField;*/
-			}
-			else {
-
-			}
-            PlayingField.Visibility = Visibility.Visible;
-            StartingField.Visibility = Visibility.Collapsed;
-        }
-
         private void AboutMenu_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(ABOUT, Title, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -373,7 +356,7 @@ namespace SeaBattleGUI
 
         private void RadioBtnTwoPlayers_Checked(object sender, RoutedEventArgs e)
         {
-            string selfIp = $"Ваш ip адресс:  {game.TheServer.TheIpAdress}";
+            string selfIp = $"Ваш ip адресс:  {TheGame.TheServer.TheIpAdress}";
             TextBlockSelfIp.Text = selfIp;
             StackNetworkData.Visibility = Visibility.Visible;
         }
@@ -408,9 +391,29 @@ namespace SeaBattleGUI
 
 		private void OpponentField_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) => Cursor = Cursors.Arrow;
 
+		private void ButtonStart_Click(object sender, RoutedEventArgs e)
+		{
+			TheGame.Player1.Username = TextBoxPlayerName.Text;
+			if (RadioBtnCompPlayer.IsChecked == true) {
+				TheGame.ModeGame = Game.Mode.SinglePlayer;
+				TheGame.InitCompPlayer();
+				/*				game.CurrentField = game.OpponentField;
+								HandleChangedFieldStatus(game);
+								game.CurrentField = game.MyField;*/
+			}
+			else {
+
+			}
+			StatisticsControl.Visibility = Visibility.Collapsed;
+			StartingField.Visibility = Visibility.Collapsed;
+			PlayingField.Visibility = Visibility.Visible;
+		}
+
 		private void ButtonStatistics_Click(object sender, RoutedEventArgs e)
 		{
-			throw new NotImplementedException();
+			StartingField.Visibility = Visibility.Collapsed;
+			PlayingField.Visibility = Visibility.Collapsed;
+			StatisticsControl.Visibility = Visibility.Visible;
 		}
 
 		private void ButtonExit_Click(object sender, RoutedEventArgs e) => Close();

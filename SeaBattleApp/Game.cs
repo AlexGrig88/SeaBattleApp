@@ -387,12 +387,18 @@ namespace SeaBattleApp
         /// </summary>
         /// <param name="pathToDirectory"></param>
         /// <returns></returns>
+        /// 
+        public string GetFullPathSaveGame()
+        {
+			var userDirectory = $"{DriveInfo.GetDrives()[0].Name}Users\\{Environment.UserName}\\Documents\\";
+			if (!Directory.Exists(userDirectory)) 
+                throw new ApplicationException($"Директория {userDirectory} не найдена");
+			return $"{userDirectory}Sea_Battle_Game\\";
+		}
+
         public string SaveOrUpdatePlayerStatistics()
         {
-            var currDirectory = $"{DriveInfo.GetDrives()[0].Name}Users\\{Environment.UserName}\\Documents\\";
-            if (!Directory.Exists(currDirectory)) throw new ApplicationException($"Директория {currDirectory} не найдена");
-            //return CreateOrUpdateStatistics(currDirectory);
-            var fullDir = $"{currDirectory}\\Sea Battle Game\\";
+            var fullDir = GetFullPathSaveGame();
             if (!Directory.Exists(fullDir)) {
                 Directory.CreateDirectory(fullDir);
             }
@@ -400,7 +406,7 @@ namespace SeaBattleApp
             if (!File.Exists(path)) {
                 var file = File.Create(path);
                 file.Close();
-                File.WriteAllText(path, GetTextStat(new int[] { 100, 0, 0 })); // изначально очки равны максимуму, как худший результат
+                File.WriteAllText(path, GetTextStatWithCurrentPlayerStatus(new int[] { 100, 0, 0 })); // изначально очки равны максимуму, как худший результат
                 return "Data saved";
             }
             int[] prevData = new int[3];
@@ -410,11 +416,11 @@ namespace SeaBattleApp
                 if (line.Contains("Имя")) continue;
                 prevData[i++] = int.Parse(line.Split(": ")[1]);
             }
-            File.WriteAllText(path, GetTextStat(prevData));
+            File.WriteAllText(path, GetTextStatWithCurrentPlayerStatus(prevData));
             return "Data updated";
         }
 
-        public string GetTextStat(int[] prevData)
+        public string GetTextStatWithCurrentPlayerStatus(int[] prevData)
         {
             if (Player1.Score != 0) {
                 Player1.Score = Player1.Score < prevData[0] ? Player1.Score : prevData[0];
