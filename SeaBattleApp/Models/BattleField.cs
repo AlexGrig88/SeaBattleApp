@@ -106,6 +106,7 @@ namespace SeaBattleApp.Models
                     int cellInt = int.Parse(cell);
                     restoredField[i, j] = IsItMyField ? cellInt: 
                                 cellInt == MarkIsAShip ? MarkAShipInvisible : cellInt;
+
                 }
             }
             return restoredField;
