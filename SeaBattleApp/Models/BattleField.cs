@@ -103,7 +103,9 @@ namespace SeaBattleApp.Models
             for (int i = 0; i < lenVertical; i++) {
                 for (int j = 0; j < lenHorizont; j++) {
                     cell = new string(fieldStr[i * lenHorizont + j], 1);
-                    restoredField[i, j] = int.Parse(cell);
+                    int cellInt = int.Parse(cell);
+                    restoredField[i, j] = IsItMyField ? cellInt: 
+                                cellInt == MarkIsAShip ? MarkAShipInvisible : cellInt;
                 }
             }
             return restoredField;

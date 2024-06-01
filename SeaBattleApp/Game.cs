@@ -71,20 +71,6 @@ namespace SeaBattleApp
             PlaceOpponentShips();
         }
 
-        public void ExecuteSettingOpponentBattlefield()
-        {
-            if (IsClientPlayer) {
-                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-                string opponentFieldAsStr = TheClient.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
-                InitOpponentBattlefield(opponentFieldAsStr);
-            }
-            else {
-                string myBattlefielAsStr = MyField.GetBattlefieldAsString();
-                string opponentFieldAsStr = TheServer.ExchangeSelfFields(myBattlefielAsStr, WriteMessageForPlayerEvent);
-                InitOpponentBattlefield(opponentFieldAsStr);
-            }
-        }
-
         public void ExecuteSettingOpponentBattlefield2()
         {
             if (IsClientPlayer) {
@@ -102,8 +88,8 @@ namespace SeaBattleApp
 
         private void InitOpponentBattlefield(string opponentFieldAsStr)
         {
-            string[] arr = opponentFieldAsStr.Split(';');
-            OpponentField.Field = OpponentField.StringToField(arr[0]);  // Формат строки для передачи: battfield;ChipsCounter;False,False,4,4,99: ... и так до конца списка кораблей
+            string[] arr = opponentFieldAsStr.Split(';');           // Формат строки для передачи: battfield;ChipsCounter;False,False,4,4,99: ... и так до конца списка кораблей
+            OpponentField.Field = OpponentField.StringToField(arr[0]);  
             OpponentField.ShipsCounter = int.Parse(arr[1]);
             foreach (var shipStr in arr[2].Split(':')) {
                 OpponentField.ShipsList.Add(Ship.FromSimpleString(shipStr));
