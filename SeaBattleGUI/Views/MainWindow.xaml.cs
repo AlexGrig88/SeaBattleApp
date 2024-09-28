@@ -51,6 +51,7 @@ namespace SeaBattleGUI
 		private List<Button> ButtonsCellsOpponent;
 		private bool IsTheWinner { get; set; }
 		private bool CanMove { get; set; }
+		private bool _hasConnect = false;
 
 		private Dictionary<string, string> _imgsNames = new Dictionary<string, string>
 			{ {"ship", "markIsAShip.png" }, {"empty", "empty.png" }, {"burning", "burning.png" }, {"destroyed", "destroyed.png" } };
@@ -133,7 +134,9 @@ namespace SeaBattleGUI
 			TextBlockShotSelf.Visibility= Visibility.Hidden;
 			TextBlockShotOpponent.Visibility = Visibility.Hidden;
 			StackPanelTablo.Visibility = Visibility.Collapsed;
-			ImgShip4.Visibility = Visibility.Visible;
+			ConnectStatusTextBlock.Visibility = Visibility.Hidden;
+
+            ImgShip4.Visibility = Visibility.Visible;
 			ImgShip3.Visibility = Visibility.Visible;
 			ImgShip2.Visibility = Visibility.Visible;
 			ImgShip1.Visibility = Visibility.Visible;
@@ -474,22 +477,38 @@ namespace SeaBattleGUI
 		private void ButtonStart_Click(object sender, RoutedEventArgs e)
 		{
 			TheGame.Player1.Username = TextBoxPlayerName.Text;
+			
 			if (RadioBtnCompPlayer.IsChecked == true) {
 				TheGame.ModeGame = Game.Mode.SinglePlayer;
 				TheGame.InitCompPlayer();
-				/*				game.CurrentField = game.OpponentField;
-								HandleChangedFieldStatus(game);
-								game.CurrentField = game.MyField;*/
 			}
 			else {
-
-			}
+				if (!_hasConnect) {
+                    MessageBox.Show("Установите соединение со вторым игроком.");
+					return;
+                }
+                TheGame.ModeGame = Game.Mode.TwoPlayers;
+            }
 			StatisticsControl.Visibility = Visibility.Collapsed;
 			StartingField.Visibility = Visibility.Collapsed;
 			PlayingField.Visibility = Visibility.Visible;
 		}
 
-		private void ButtonStatistics_Click(object sender, RoutedEventArgs e)
+        private void CheckConnectBtn_Click(object sender, RoutedEventArgs e)
+		{
+			_hasConnect = false;
+			if (_hasConnect) {
+				ConnectStatusTextBlock.Text = "Успех!";
+				ConnectStatusTextBlock.Foreground = new SolidColorBrush(Colors.Green);
+            }
+			else {
+                ConnectStatusTextBlock.Text = "Неудача";
+                ConnectStatusTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+            }
+            ConnectStatusTextBlock.Visibility = Visibility.Visible;
+        }
+
+        private void ButtonStatistics_Click(object sender, RoutedEventArgs e)
 		{
 			UpdateUserControlStatistics();
 			StartingField.Visibility = Visibility.Collapsed;
