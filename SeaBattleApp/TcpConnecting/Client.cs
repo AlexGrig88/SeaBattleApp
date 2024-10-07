@@ -28,7 +28,7 @@ namespace SeaBattleApp.TcpConnecting
         }
     
 
-        public Client(string ip, int port)
+        public Client(string ip = "0.0.0.0", int port = 51000)
         {
             TheIpAdress = ip;
             ThePort = port;

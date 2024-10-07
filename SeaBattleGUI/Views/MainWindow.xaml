@@ -132,6 +132,8 @@
                 <Image x:Name="ImgShip4" Source="\Resources\Images\ship4.png" MaxWidth="120" Canvas.Left="40" Canvas.Top="20"
                        MouseLeftButtonDown="ButtonLeftPressed_ImgShip" MouseRightButtonDown="ButtonRightPressed_ImgShip"></Image>
 
+                <TextBlock x:Name="TestBlock" Canvas.Right="380" Canvas.Bottom="40" FontSize="22" Visibility="Hidden">Test</TextBlock>
+
                 <TextBlock x:Name="TextBlockCounter4Len" Canvas.Left="165" TextWrapping="Wrap" Text="x 1 шт." Canvas.Top="25" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Top" FontWeight="Bold"/>
                 <TextBlock x:Name="TextBlockCounter3Len" Canvas.Left="358" TextWrapping="Wrap" Text="x 2 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <TextBlock x:Name="TextBlockCounter2Len" Canvas.Left="527" TextWrapping="Wrap" Text="x 3 шт." Canvas.Top="25" FontSize="16" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center"/>

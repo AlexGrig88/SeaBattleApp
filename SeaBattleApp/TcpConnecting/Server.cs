@@ -22,7 +22,7 @@ namespace SeaBattleApp.TcpConnecting
 
         public Server()
         {
-            TheIpAdress = GetIpAdressAndPort();
+            TheIpAdress = GetIpAdress();
             ThePort = 51000;
             IsStarted = false;
         }
@@ -127,7 +127,7 @@ namespace SeaBattleApp.TcpConnecting
             }
         }
 
-        public IPAddress GetIpAdressAndPort()
+        public IPAddress GetIpAdress()
         {
             IPAddress ipV4 = IPAddress.Parse("255.255.255.255");
             IPAddress[] addresses = Dns.GetHostAddresses(Dns.GetHostName());

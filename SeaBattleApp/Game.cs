@@ -46,7 +46,7 @@ namespace SeaBattleApp
             OpponentField = new BattleField(false, 10, 10);
             CurrentField = MyField;
             Player1 = new Player(1, "Anon");
-            TheClient = new Client("", 0);
+            TheClient = new Client();
             TheServer = new Server();
         }
 
@@ -273,7 +273,7 @@ namespace SeaBattleApp
                         isTheWinner = true;
                         return;
                     }
-                    WriteMessageForPlayerEvent?.Invoke("Плохи дела. Компьютер потопил ваш корабль. Думает.");
+                    WriteMessageForPlayerEvent?.Invoke("Плохи дела. Соперник потопил ваш корабль. Думает.");
                 }
 
             } while (true);

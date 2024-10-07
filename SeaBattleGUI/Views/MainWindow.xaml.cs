@@ -11,6 +11,9 @@ using System.Windows.Interop;
 using SeaBattleGUI.Views;
 using System.IO;
 using System.Windows.Documents;
+using System.Windows.Threading;
+using System.Reflection.Emit;
+using System.Net.Sockets;
 
 
 namespace SeaBattleGUI
@@ -55,6 +58,8 @@ namespace SeaBattleGUI
 
 		private Dictionary<string, string> _imgsNames = new Dictionary<string, string>
 			{ {"ship", "markIsAShip.png" }, {"empty", "empty.png" }, {"burning", "burning.png" }, {"destroyed", "destroyed.png" } };
+
+		private Dispatcher _currDispatcher = Dispatcher.CurrentDispatcher;
 
 		public MainWindow()
 		{
@@ -205,14 +210,14 @@ namespace SeaBattleGUI
 					ButtonsCellsSelf.Add(btnCell);
 				}
 				else {
-					btnCell.Click += ButtonCellOpponent_Click;
+					btnCell.Click += ButtonCellOpponent_ClickAsync;
 					ButtonsCellsOpponent.Add(btnCell);
 				}
 				grid.Children.Add(btnCell);
 			}
 		}
 
-		private async void ButtonCellOpponent_Click(object sender, RoutedEventArgs e)
+		private async void ButtonCellOpponent_ClickAsync(object sender, RoutedEventArgs e)
 		{
 			Button thisButton = (Button)sender;
 			if (IsTheWinner) {
@@ -225,12 +230,12 @@ namespace SeaBattleGUI
 				MessageBox.Show("Ходит оппонент. Ожидайте!");
 			}
 			else {
-				HandleMovePlayer(thisButton);
+				HandleMovePlayerAsync(thisButton);
 			}
 
 		}
 
-		private async void HandleMovePlayer(Button button)
+		private async void HandleMovePlayerAsync(Button button)
 		{
 			int btnCoordinate = (int)button.Tag - START_BUTTON_ID_OPPONENT;     // сдвигаем, чтобы получить значение от 0 до 100
 
@@ -442,6 +447,18 @@ namespace SeaBattleGUI
             string selfIp = $"Ваш ip адресс:  {TheGame.TheServer.TheIpAdress}";
             TextBlockSelfIp.Text = selfIp;
             StackNetworkData.Visibility = Visibility.Visible;
+            MessageBoxResult result = MessageBox.Show("Вы выбрали игру на двоих. Будет запущен сервер для обмена данными. Подтвердите свое решение или отмените его.",
+													"Предупреждение", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.OK) {
+                if (!TheGame.TheServer.TryStart()) {
+					MessageBox.Show("Что-то пошло не так, серверу не удалось запуститься!");
+                    RadioBtnCompPlayer.IsChecked = true;
+					return;
+                }
+            }
+            else {
+				RadioBtnCompPlayer.IsChecked = true;
+            }
         }
 
         private void RadioBtnComp_Checked(object sender, RoutedEventArgs e) => StackNetworkData.Visibility = Visibility.Hidden;
@@ -494,9 +511,20 @@ namespace SeaBattleGUI
 			PlayingField.Visibility = Visibility.Visible;
 		}
 
+/*        private void CheckStatusSecondPlayer()
+        {
+			Task.Delay(3000).ContinueWith(t => {
+				_currDispatcher.Invoke(DispatcherPriority.ContextIdle, new Action(delegate ()
+				{
+					TestBlock.Visibility = Visibility.Visible;
+				}));
+			});
+        }*/
+
         private void CheckConnectBtn_Click(object sender, RoutedEventArgs e)
 		{
-			_hasConnect = false;
+			TheGame.TheClient.TheIpAdress = TextBoxIp.Text;
+            _hasConnect = TheGame.TheClient.TryConnect();
 			if (_hasConnect) {
 				ConnectStatusTextBlock.Text = "Успех!";
 				ConnectStatusTextBlock.Foreground = new SolidColorBrush(Colors.Green);
