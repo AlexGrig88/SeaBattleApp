@@ -450,11 +450,7 @@ namespace SeaBattleGUI
             MessageBoxResult result = MessageBox.Show("Вы выбрали игру на двоих. Будет запущен сервер для обмена данными. Подтвердите свое решение или отмените его.",
 													"Предупреждение", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             if (result == MessageBoxResult.OK) {
-                if (!TheGame.TheServer.TryStart()) {
-					MessageBox.Show("Что-то пошло не так, серверу не удалось запуститься!");
-                    RadioBtnCompPlayer.IsChecked = true;
-					return;
-                }
+				Task.Run(() => TheGame.TheServer.TryStart());
             }
             else {
 				RadioBtnCompPlayer.IsChecked = true;
